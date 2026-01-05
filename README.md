@@ -4,6 +4,7 @@ To-Do &amp; Pomodoro Focus App TaskFlow is a simple and productivity-focused web
 🌟 Aura Tasks & Focus
 Aura Tasks & Focus is a modern productivity web app that combines a smart to-do list with a Pomodoro focus timer. It helps users organize tasks, stay focused, build daily streaks, and track productivity — all with a clean, minimal UI.
 Built using HTML, Tailwind CSS, and Vanilla JavaScript, Aura also works as a Progressive Web App (PWA) and supports offline usage.
+
 🚀 Features
 ✅ Task Management
 Add, edit, and delete tasks
@@ -14,21 +15,25 @@ All
 Active
 Completed
 Persistent storage using localStorage
+
 ⏰ Pomodoro Focus Timer
 Focus, Short Break, and Long Break modes
 Circular animated progress ring
 Start, pause, and reset timer
 Customizable timer durations
 Session completion celebration 🎉
+
 🎯 Task-Focused Sessions
 Start a focus session directly from a task
 See the active task while focusing
 Automatically log completed focus sessions
+
 🔥 Productivity Tracking
 Daily streak system
 Session count & total focused minutes
 Focus history log
 Confetti rewards for task completion & sessions
+
 🌙 UI & Experience
 Light & Dark mode (system-aware + manual toggle)
 Smooth animations & transitions
