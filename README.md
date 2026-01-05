@@ -111,3 +111,4 @@ Built with ❤️ and focus
 
 For Download App:-
 
+Click on released and download app
