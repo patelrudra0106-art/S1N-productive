@@ -5,8 +5,8 @@
   "display": "standalone",
   "background_color": "#0F172A",
   "theme_color": "#4F46E5",
-  "description": "Stay focused and get things done with Aura Tasks & Focus.",
-  "orientation": "portrait",
+  "description": "Stay focused and get things done with Aura Tasks &amp; Focus.",
+  "orientation": "any",
   "icons": [
     {
       "src": "https://cdn-icons-png.flaticon.com/512/906/906334.png",
@@ -20,5 +20,14 @@
       "type": "image/png",
       "purpose": "any maskable"
     }
+  ],
+  "dir": "auto",
+  "lang": "en",
+  "display_override": [
+    "window-controls-overlay"
+  ],
+  "categories": [
+    "education",
+    "productivity"
   ]
 }
