@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aura Tasks & Focus</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                    animation: { 
+                        'spin-slow': 'spin 3s linear infinite',
+                        'pulse-fast': 'pulse 1s cubic-bezier(0.4, 0, 0.6, 1) infinite'
+                    }
+                }
+            }
+        }
+    </script>
+
+    <script>
+        if (localStorage.getItem('auraTheme') === 'dark' || 
+           (!('auraTheme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+    </script>
+
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="manifest" href="manifest.json">
+</head>
+<body class="bg-slate-50 dark:bg-[#0F172A] min-h-screen font-sans text-slate-800 dark:text-slate-100 transition-colors duration-500 pb-24">
+
+    <header class="max-w-xl mx-auto px-6 pt-10 pb-6 flex justify-between items-center">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 relative">
+                <svg viewBox="0 0 512 512" class="w-full h-full drop-shadow-md">
+                    <defs>
+                        <linearGradient id="auraGradientSmall" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stop-color="#6366f1" />
+                            <stop offset="100%" stop-color="#a855f7" />
+                        </linearGradient>
+                    </defs>
+                    <rect x="32" y="32" width="448" height="448" rx="128" fill="url(#auraGradientSmall)" />
+                    <circle cx="256" cy="256" r="140" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="32" />
+                    <path d="M180 260 L240 320 L340 180" fill="none" stroke="white" stroke-width="48" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+            </div>
+            <div>
+                <h1 class="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-slate-900 to-slate-600 dark:from-white dark:to-slate-400">
+                    Aura
+                </h1>
+                <p class="text-xs text-slate-500 dark:text-slate-400 font-medium tracking-wide">
+                    Productivity Suite
+                </p>
+            </div>
+        </div>
+        
+        <div class="flex items-center gap-3">
+            <div class="flex items-center gap-1.5 px-3 py-1.5 bg-orange-50 dark:bg-orange-900/20 rounded-full border border-orange-100 dark:border-orange-900/50" title="Daily Streak">
+                <i data-lucide="flame" class="w-4 h-4 text-orange-500 fill-orange-500"></i>
+                <span id="streak-count" class="text-sm font-bold text-orange-600 dark:text-orange-400">0</span>
+            </div>
+
+            <div class="flex items-center gap-2">
+                <button onclick="openSettings()" class="p-2.5 rounded-full bg-white dark:bg-slate-800/50 backdrop-blur-md border border-slate-200 dark:border-slate-700 shadow-sm hover:scale-105 active:scale-95 transition-all text-slate-500 dark:text-slate-400">
+                    <i data-lucide="settings" class="w-5 h-5"></i>
+                </button>
+                <button id="theme-toggle" class="p-2.5 rounded-full bg-white dark:bg-slate-800/50 backdrop-blur-md border border-slate-200 dark:border-slate-700 shadow-sm hover:scale-105 active:scale-95 transition-all">
+                    <i data-lucide="sun" class="w-5 h-5 hidden dark:block text-amber-400"></i>
+                    <i data-lucide="moon" class="w-5 h-5 block dark:hidden text-indigo-600"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <div id="settings-modal" class="hidden fixed inset-0 z-[100] flex items-center justify-center px-4">
+        <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" onclick="closeSettings()"></div>
+        <div class="bg-white dark:bg-slate-800 rounded-3xl p-6 w-full max-w-sm shadow-2xl relative animate-fade-in border border-slate-100 dark:border-slate-700">
+            <h3 class="text-lg font-bold mb-4">Timer Settings</h3>
+            <div class="space-y-4">
+                <div class="flex justify-between items-center">
+                    <label class="text-sm font-medium text-slate-500">Focus (min)</label>
+                    <input type="number" id="setting-focus" value="25" class="w-20 p-2 bg-slate-100 dark:bg-slate-700 rounded-lg text-center outline-none focus:ring-2 focus:ring-indigo-500">
+                </div>
+                <div class="flex justify-between items-center">
+                    <label class="text-sm font-medium text-slate-500">Short Break</label>
+                    <input type="number" id="setting-short" value="5" class="w-20 p-2 bg-slate-100 dark:bg-slate-700 rounded-lg text-center outline-none focus:ring-2 focus:ring-emerald-500">
+                </div>
+                <div class="flex justify-between items-center">
+                    <label class="text-sm font-medium text-slate-500">Long Break</label>
+                    <input type="number" id="setting-long" value="15" class="w-20 p-2 bg-slate-100 dark:bg-slate-700 rounded-lg text-center outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+            </div>
+            <button onclick="saveSettings()" class="w-full mt-6 bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-xl font-medium transition-colors">Save Changes</button>
+        </div>
+    </div>
+
+    <div class="max-w-xl mx-auto px-4 relative">
+        
+        <section id="view-tasks" class="view-section transition-all duration-300">
+            <form id="task-form" class="mb-6">
+                <div class="relative group mb-3">
+                    <input type="text" id="task-input" placeholder="What needs doing?" autocomplete="off"
+                        class="w-full pl-4 pr-4 py-4 rounded-2xl bg-white dark:bg-slate-800 border-2 border-transparent focus:border-indigo-500/30 outline-none shadow-sm transition-all">
+                </div>
+                <div class="flex flex-wrap gap-2 items-center justify-between">
+                    <div class="flex gap-2">
+                        <input type="date" id="date-input" class="w-[110px] px-2 py-2.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs focus:border-indigo-500 outline-none shadow-sm cursor-pointer">
+                        <input type="time" id="time-input" class="w-[90px] px-2 py-2.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs focus:border-indigo-500 outline-none shadow-sm cursor-pointer">
+                    </div>
+                    <button type="submit" id="add-btn" disabled class="ml-auto px-6 py-2.5 bg-indigo-600 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-indigo-700 text-white rounded-xl transition-all shadow-md shadow-indigo-500/20">Add</button>
+                </div>
+            </form>
+
+            <div class="flex gap-2 mb-6 overflow-x-auto pb-2 scrollbar-hide">
+                <button data-filter="all" class="filter-btn active px-4 py-2 rounded-xl text-sm font-medium bg-white dark:bg-slate-800 shadow-sm text-indigo-600">All</button>
+                <button data-filter="active" class="filter-btn px-4 py-2 rounded-xl text-sm font-medium text-slate-500 hover:bg-white dark:hover:bg-slate-800">Active</button>
+                <button data-filter="completed" class="filter-btn px-4 py-2 rounded-xl text-sm font-medium text-slate-500 hover:bg-white dark:hover:bg-slate-800">Done</button>
+            </div>
+            
+            <ul id="task-list" class="space-y-3 pb-8"></ul>
+            
+            <div id="empty-state" class="hidden text-center py-12">
+                <div class="w-20 h-20 bg-indigo-50 dark:bg-slate-800/50 rounded-full flex items-center justify-center mx-auto mb-4"><i data-lucide="coffee" class="w-8 h-8 text-indigo-300"></i></div>
+                <p class="text-slate-400">No tasks here. Relax or add one!</p>
+            </div>
+        </section>
+
+        <section id="view-focus" class="view-section hidden transition-all duration-300 flex flex-col items-center justify-center pt-4">
+            <div id="active-task-display" class="hidden w-full mb-6 animate-fade-in">
+                <div class="bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-100 dark:border-indigo-500/20 p-4 rounded-2xl flex items-center justify-between shadow-sm">
+                    <div class="flex items-center gap-3 overflow-hidden">
+                        <div class="p-2 bg-white dark:bg-indigo-500/20 rounded-full text-indigo-500"><i data-lucide="target" class="w-4 h-4"></i></div>
+                        <div class="min-w-0">
+                            <p class="text-[10px] font-bold text-indigo-400 uppercase tracking-wider">Focusing on</p>
+                            <p id="focus-task-text" class="text-sm font-medium text-slate-700 dark:text-slate-200 truncate">Task Name</p>
+                        </div>
+                    </div>
+                    <button onclick="clearFocusTask()" class="p-2 hover:bg-white dark:hover:bg-slate-800 rounded-full text-slate-400 hover:text-rose-500 transition-colors"><i data-lucide="x" class="w-4 h-4"></i></button>
+                </div>
+            </div>
+
+            <div class="w-full bg-white dark:bg-slate-800 rounded-3xl p-8 shadow-xl shadow-indigo-500/5 dark:shadow-none border border-slate-100 dark:border-slate-700 relative overflow-hidden">
+                <div class="absolute top-0 right-0 w-32 h-32 bg-purple-500/10 rounded-full blur-3xl -mr-10 -mt-10"></div>
+                <div class="absolute bottom-0 left-0 w-32 h-32 bg-indigo-500/10 rounded-full blur-3xl -ml-10 -mb-10"></div>
+                <div class="flex justify-center gap-2 mb-8 bg-slate-100 dark:bg-slate-900/50 p-1 rounded-xl w-fit mx-auto relative z-10">
+                    <button id="mode-work" class="px-4 py-2 rounded-lg text-sm font-medium transition-all bg-white dark:bg-slate-700 shadow-sm text-indigo-600 dark:text-indigo-300">Focus</button>
+                    <button id="mode-short" class="px-4 py-2 rounded-lg text-sm font-medium transition-all text-slate-500 hover:text-slate-700 dark:text-slate-400">Short Break</button>
+                    <button id="mode-long" class="px-4 py-2 rounded-lg text-sm font-medium transition-all text-slate-500 hover:text-slate-700 dark:text-slate-400">Long Break</button>
+                </div>
+                <div class="relative w-64 h-64 mx-auto mb-8 z-10">
+                    <svg class="w-full h-full transform -rotate-90">
+                        <circle cx="128" cy="128" r="120" stroke="currentColor" stroke-width="8" fill="transparent" class="text-slate-100 dark:text-slate-700" />
+                        <circle id="progress-ring" cx="128" cy="128" r="120" stroke="currentColor" stroke-width="8" fill="transparent" class="text-indigo-500 transition-all duration-1000 ease-linear" stroke-dasharray="753.98" stroke-dashoffset="0" stroke-linecap="round" />
+                    </svg>
+                    <div class="absolute inset-0 flex flex-col items-center justify-center">
+                        <span id="timer-display" class="text-6xl font-bold tracking-tight text-slate-800 dark:text-white tabular-nums">25:00</span>
+                        <span id="timer-status" class="text-sm font-medium text-slate-400 mt-2 uppercase tracking-widest">Ready</span>
+                    </div>
+                </div>
+                <div class="flex justify-center gap-4 relative z-10">
+                    <button id="timer-toggle" class="w-16 h-16 flex items-center justify-center rounded-full bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-500/30 transition-all active:scale-95"><i data-lucide="play" class="w-6 h-6 ml-1"></i></button>
+                    <button id="timer-reset" class="w-16 h-16 flex items-center justify-center rounded-full bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600 transition-all active:scale-95"><i data-lucide="rotate-ccw" class="w-6 h-6"></i></button>
+                </div>
+            </div>
+
+            <div class="mt-6 flex gap-4 text-center w-full">
+                <div class="flex-1 bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-100 dark:border-slate-700/50"><p class="text-xs text-slate-400 uppercase font-bold tracking-wider">Sessions</p><p id="sessions-count" class="text-2xl font-bold text-indigo-600 dark:text-indigo-400">0</p></div>
+                <div class="flex-1 bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-100 dark:border-slate-700/50"><p class="text-xs text-slate-400 uppercase font-bold tracking-wider">Minutes</p><p id="minutes-count" class="text-2xl font-bold text-purple-600 dark:text-purple-400">0</p></div>
+            </div>
+
+            <div class="mt-8 w-full">
+                <div class="flex justify-between items-end mb-4 px-2">
+                    <h3 class="text-sm font-bold text-slate-400 uppercase tracking-wider">Recent History</h3>
+                    <button onclick="clearHistory()" class="text-xs text-slate-400 hover:text-rose-500 transition-colors">Clear</button>
+                </div>
+                <ul id="history-list" class="space-y-2"></ul>
+            </div>
+        </section>
+    </div>
+
+    <nav class="fixed bottom-6 left-1/2 -translate-x-1/2 bg-white/80 dark:bg-slate-800/80 backdrop-blur-lg border border-slate-200 dark:border-slate-700 p-1.5 rounded-2xl shadow-2xl flex gap-1 z-50">
+        <button onclick="switchView('tasks')" id="nav-tasks" class="nav-item active px-6 py-3 rounded-xl flex items-center gap-2 text-sm font-medium transition-all text-indigo-600 bg-indigo-50 dark:bg-indigo-500/20 dark:text-indigo-300"><i data-lucide="check-circle-2" class="w-5 h-5"></i><span>Tasks</span></button>
+        <button onclick="switchView('focus')" id="nav-focus" class="nav-item px-6 py-3 rounded-xl flex items-center gap-2 text-sm font-medium transition-all text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700/50"><i data-lucide="timer" class="w-5 h-5"></i><span>Focus</span></button>
+    </nav>
+
+    <audio id="alarm-sound" preload="auto"></audio>
+
+    <script src="app.js"></script>
+    <script src="pomodoro.js"></script>
+    
+    <script>
+        lucide.createIcons();
+        function switchView(viewName) {
+            const tasksView = document.getElementById('view-tasks');
+            const focusView = document.getElementById('view-focus');
+            const navTasks = document.getElementById('nav-tasks');
+            const navFocus = document.getElementById('nav-focus');
+            if (viewName === 'tasks') {
+                tasksView.classList.remove('hidden'); focusView.classList.add('hidden');
+                navTasks.classList.add('active','text-indigo-600','bg-indigo-50','dark:bg-indigo-500/20','dark:text-indigo-300'); navTasks.classList.remove('text-slate-500','hover:bg-slate-100','dark:hover:bg-slate-700/50');
+                navFocus.classList.remove('active','text-indigo-600','bg-indigo-50','dark:bg-indigo-500/20','dark:text-indigo-300'); navFocus.classList.add('text-slate-500','hover:bg-slate-100','dark:hover:bg-slate-700/50');
+            } else {
+                tasksView.classList.add('hidden'); focusView.classList.remove('hidden');
+                navFocus.classList.add('active','text-indigo-600','bg-indigo-50','dark:bg-indigo-500/20','dark:text-indigo-300'); navFocus.classList.remove('text-slate-500','hover:bg-slate-100','dark:hover:bg-slate-700/50');
+                navTasks.classList.remove('active','text-indigo-600','bg-indigo-50','dark:bg-indigo-500/20','dark:text-indigo-300'); navTasks.classList.add('text-slate-500','hover:bg-slate-100','dark:hover:bg-slate-700/50');
+            }
+        }
+    </script>
+</body>
+</html>
