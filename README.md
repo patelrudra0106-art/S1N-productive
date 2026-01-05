@@ -111,4 +111,6 @@ Built with ❤️ and focus
 
 For Download App:-
 
-Click on released and download app
+Click on released
+You see Tasktimer.zip
+Then download app
