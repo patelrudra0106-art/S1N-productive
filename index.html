@@ -5,8 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Aura Tasks & Focus</title>
     
-    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="manifest" href="manifest.json">
     
+    <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
             darkMode: 'class',
@@ -21,7 +22,6 @@
             }
         }
     </script>
-
     <script>
         if (localStorage.getItem('auraTheme') === 'dark' || 
            (!('auraTheme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
@@ -30,11 +30,9 @@
             document.documentElement.classList.remove('dark');
         }
     </script>
-
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <link rel="stylesheet" href="styles.css">
-    <link rel="manifest" href="manifest.json">
 </head>
 <body class="bg-slate-50 dark:bg-[#0F172A] min-h-screen font-sans text-slate-800 dark:text-slate-100 transition-colors duration-500 pb-24">
 
@@ -54,26 +52,21 @@
                 </svg>
             </div>
             <div>
-                <h1 class="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-slate-900 to-slate-600 dark:from-white dark:to-slate-400">
-                    Aura
-                </h1>
-                <p class="text-xs text-slate-500 dark:text-slate-400 font-medium tracking-wide">
-                    Productivity Suite
-                </p>
+                <h1 class="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-slate-900 to-slate-600 dark:from-white dark:to-slate-400">Aura</h1>
+                <p class="text-xs text-slate-500 dark:text-slate-400 font-medium tracking-wide">Productivity Suite</p>
             </div>
         </div>
         
         <div class="flex items-center gap-3">
-            <div class="flex items-center gap-1.5 px-3 py-1.5 bg-orange-50 dark:bg-orange-900/20 rounded-full border border-orange-100 dark:border-orange-900/50" title="Daily Streak">
+            <div class="flex items-center gap-1.5 px-3 py-1.5 bg-orange-50 dark:bg-orange-900/20 rounded-full border border-orange-100 dark:border-orange-900/50">
                 <i data-lucide="flame" class="w-4 h-4 text-orange-500 fill-orange-500"></i>
                 <span id="streak-count" class="text-sm font-bold text-orange-600 dark:text-orange-400">0</span>
             </div>
-
             <div class="flex items-center gap-2">
-                <button onclick="openSettings()" class="p-2.5 rounded-full bg-white dark:bg-slate-800/50 backdrop-blur-md border border-slate-200 dark:border-slate-700 shadow-sm hover:scale-105 active:scale-95 transition-all text-slate-500 dark:text-slate-400">
-                    <i data-lucide="settings" class="w-5 h-5"></i>
+                <button onclick="openSettings()" class="p-2.5 rounded-full bg-white dark:bg-slate-800/50 backdrop-blur-md border border-slate-200 dark:border-slate-700 shadow-sm">
+                    <i data-lucide="settings" class="w-5 h-5 text-slate-500 dark:text-slate-400"></i>
                 </button>
-                <button id="theme-toggle" class="p-2.5 rounded-full bg-white dark:bg-slate-800/50 backdrop-blur-md border border-slate-200 dark:border-slate-700 shadow-sm hover:scale-105 active:scale-95 transition-all">
+                <button id="theme-toggle" class="p-2.5 rounded-full bg-white dark:bg-slate-800/50 backdrop-blur-md border border-slate-200 dark:border-slate-700 shadow-sm">
                     <i data-lucide="sun" class="w-5 h-5 hidden dark:block text-amber-400"></i>
                     <i data-lucide="moon" class="w-5 h-5 block dark:hidden text-indigo-600"></i>
                 </button>
@@ -84,19 +77,26 @@
     <div id="settings-modal" class="hidden fixed inset-0 z-[100] flex items-center justify-center px-4">
         <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" onclick="closeSettings()"></div>
         <div class="bg-white dark:bg-slate-800 rounded-3xl p-6 w-full max-w-sm shadow-2xl relative animate-fade-in border border-slate-100 dark:border-slate-700">
-            <h3 class="text-lg font-bold mb-4">Timer Settings</h3>
+            <h3 class="text-lg font-bold mb-4">Settings</h3>
             <div class="space-y-4">
+                <div class="flex justify-between items-center bg-slate-50 dark:bg-slate-700/50 p-3 rounded-xl">
+                    <label class="text-sm font-medium text-slate-500 dark:text-slate-300">Notifications</label>
+                    <button id="enable-notifs-btn" class="px-3 py-1.5 bg-slate-200 dark:bg-slate-600 rounded-lg text-xs font-bold text-slate-600 dark:text-slate-300 transition-colors">
+                        Enable
+                    </button>
+                </div>
+
                 <div class="flex justify-between items-center">
                     <label class="text-sm font-medium text-slate-500">Focus (min)</label>
-                    <input type="number" id="setting-focus" value="25" class="w-20 p-2 bg-slate-100 dark:bg-slate-700 rounded-lg text-center outline-none focus:ring-2 focus:ring-indigo-500">
+                    <input type="number" id="setting-focus" value="25" class="w-20 p-2 bg-slate-100 dark:bg-slate-700 rounded-lg text-center outline-none">
                 </div>
                 <div class="flex justify-between items-center">
                     <label class="text-sm font-medium text-slate-500">Short Break</label>
-                    <input type="number" id="setting-short" value="5" class="w-20 p-2 bg-slate-100 dark:bg-slate-700 rounded-lg text-center outline-none focus:ring-2 focus:ring-emerald-500">
+                    <input type="number" id="setting-short" value="5" class="w-20 p-2 bg-slate-100 dark:bg-slate-700 rounded-lg text-center outline-none">
                 </div>
                 <div class="flex justify-between items-center">
                     <label class="text-sm font-medium text-slate-500">Long Break</label>
-                    <input type="number" id="setting-long" value="15" class="w-20 p-2 bg-slate-100 dark:bg-slate-700 rounded-lg text-center outline-none focus:ring-2 focus:ring-blue-500">
+                    <input type="number" id="setting-long" value="15" class="w-20 p-2 bg-slate-100 dark:bg-slate-700 rounded-lg text-center outline-none">
                 </div>
             </div>
             <button onclick="saveSettings()" class="w-full mt-6 bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-xl font-medium transition-colors">Save Changes</button>
@@ -104,7 +104,6 @@
     </div>
 
     <div class="max-w-xl mx-auto px-4 relative">
-        
         <section id="view-tasks" class="view-section transition-all duration-300">
             <form id="task-form" class="mb-6">
                 <div class="relative group mb-3">
