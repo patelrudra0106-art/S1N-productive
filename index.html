@@ -81,6 +81,7 @@
         <div class="bg-white dark:bg-slate-800 rounded-3xl p-6 w-full max-w-sm shadow-2xl relative animate-fade-in border border-slate-100 dark:border-slate-700">
             <h3 class="text-lg font-bold mb-4">Settings</h3>
             <div class="space-y-4">
+                
                 <div class="flex justify-between items-center bg-slate-50 dark:bg-slate-700/50 p-3 rounded-xl">
                     <label class="text-sm font-medium text-slate-500 dark:text-slate-300">Notifications</label>
                     <div class="flex gap-2">
@@ -88,6 +89,7 @@
                         <button id="enable-notifs-btn" class="px-3 py-1.5 bg-slate-200 dark:bg-slate-600 rounded-lg text-xs font-bold text-slate-600 dark:text-slate-300 transition-colors">Enable</button>
                     </div>
                 </div>
+
                 <div class="flex justify-between items-center">
                     <label class="text-sm font-medium text-slate-500">Focus (min)</label>
                     <input type="number" id="setting-focus" value="25" class="w-20 p-2 bg-slate-100 dark:bg-slate-700 rounded-lg text-center outline-none">
@@ -145,7 +147,7 @@
                 </div>
             </div>
             <div class="w-full bg-white dark:bg-slate-800 rounded-3xl p-8 shadow-xl shadow-indigo-500/5 dark:shadow-none border border-slate-100 dark:border-slate-700 relative overflow-hidden">
-               <div class="flex justify-center gap-2 mb-8 bg-slate-100 dark:bg-slate-900/50 p-1 rounded-xl w-fit mx-auto relative z-10">
+                <div class="flex justify-center gap-2 mb-8 bg-slate-100 dark:bg-slate-900/50 p-1 rounded-xl w-fit mx-auto relative z-10">
                     <button id="mode-work" class="px-4 py-2 rounded-lg text-sm font-medium transition-all bg-white dark:bg-slate-700 shadow-sm text-indigo-600 dark:text-indigo-300">Focus</button>
                     <button id="mode-short" class="px-4 py-2 rounded-lg text-sm font-medium transition-all text-slate-500 hover:text-slate-700 dark:text-slate-400">Short Break</button>
                     <button id="mode-long" class="px-4 py-2 rounded-lg text-sm font-medium transition-all text-slate-500 hover:text-slate-700 dark:text-slate-400">Long Break</button>
@@ -165,7 +167,6 @@
                     <button id="timer-reset" class="w-16 h-16 flex items-center justify-center rounded-full bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600 transition-all active:scale-95"><i data-lucide="rotate-ccw" class="w-6 h-6"></i></button>
                 </div>
             </div>
-            
             <div class="mt-6 flex gap-4 text-center w-full">
                 <div class="flex-1 bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-100 dark:border-slate-700/50"><p class="text-xs text-slate-400 uppercase font-bold tracking-wider">Sessions</p><p id="sessions-count" class="text-2xl font-bold text-indigo-600 dark:text-indigo-400">0</p></div>
                 <div class="flex-1 bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-100 dark:border-slate-700/50"><p class="text-xs text-slate-400 uppercase font-bold tracking-wider">Minutes</p><p id="minutes-count" class="text-2xl font-bold text-purple-600 dark:text-purple-400">0</p></div>
