@@ -6,6 +6,7 @@ let tasks = JSON.parse(localStorage.getItem('auraTasks')) || [
 ];
 let streak = JSON.parse(localStorage.getItem('auraStreak')) || { count: 0, lastLogin: '' };
 let currentFilter = 'all';
+let wakeLock = null; // Keeps screen from sleeping fully if supported
 
 // --- ELEMENTS ---
 const taskListEl = document.getElementById('task-list');
@@ -19,7 +20,7 @@ const filterBtns = document.querySelectorAll('.filter-btn');
 
 // --- INIT ---
 document.addEventListener('DOMContentLoaded', () => {
-    // Theme
+    // Theme Logic
     const themeToggle = document.getElementById('theme-toggle');
     if(themeToggle) {
         themeToggle.addEventListener('click', () => {
@@ -35,65 +36,89 @@ document.addEventListener('DOMContentLoaded', () => {
     checkStreak(); 
     renderTasks();
     
-    // Check every 1 second (More precise)
+    // Check every 1 second
     setInterval(checkReminders, 1000);
 
-    // Force Check on Wake Up
+    // CRITICAL: Start "Keep Alive" mode on user interaction
+    // This allows the app to run in the background by playing silent audio
+    const startKeepAlive = () => {
+        enableBackgroundMode();
+        // Remove listeners after first successful activation
+        document.removeEventListener('click', startKeepAlive);
+        document.removeEventListener('touchstart', startKeepAlive);
+    };
+    
+    document.addEventListener('click', startKeepAlive);
+    document.addEventListener('touchstart', startKeepAlive);
+    
+    // Also re-trigger on wake
     document.addEventListener("visibilitychange", () => {
-        if (document.visibilityState === "visible") checkReminders();
+        if (document.visibilityState === "visible") {
+            checkReminders();
+            enableBackgroundMode();
+        }
     });
-
-    // CRITICAL: Unlock Audio on First Click anywhere
-    document.body.addEventListener('click', unlockAudioEngine, { once: true });
 });
 
-function unlockAudioEngine() {
-    const audio = document.getElementById('alarm-sound');
-    if(audio) {
-        // Play silence to warm up engine
-        audio.play().then(() => {
-            audio.pause();
-            audio.currentTime = 0;
-        }).catch(() => {});
+// --- THE MAGIC FIX: KEEP APP ALIVE ---
+async function enableBackgroundMode() {
+    // 1. Try to keep screen awake (Works when app is visible)
+    try {
+        if ('wakeLock' in navigator && !wakeLock) {
+            wakeLock = await navigator.wakeLock.request('screen');
+            console.log("💡 Screen Wake Lock Active");
+        }
+    } catch (err) {
+        console.log("Wake Lock not supported/allowed", err);
+    }
+
+    // 2. Play Silent Audio (Tricks Android to keep app running in background)
+    const silence = document.getElementById('silence');
+    if(silence && silence.paused) {
+        silence.volume = 0.01; // Almost silent, but "playing"
+        // We use a promise to catch autoplay errors
+        silence.play().then(() => {
+            console.log("🔊 Background Audio Active");
+        }).catch(e => {
+            console.log("Background Audio Autoplay Blocked - waiting for click");
+        }); 
     }
 }
 
-// --- REMINDER LOGIC (ROBUST VERSION) ---
+// --- REMINDER LOGIC ---
 function checkReminders() {
-    try {
-        const now = new Date();
-        const currentDate = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
-        const currentTotalMinutes = (now.getHours() * 60) + now.getMinutes();
+    const now = new Date();
+    // Format: YYYY-MM-DD
+    const currentDate = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
+    const currentTotalMinutes = (now.getHours() * 60) + now.getMinutes();
 
-        tasks.forEach(task => {
-            if (!task.completed && !task.notified && task.date && task.time) {
-                const [taskH, taskM] = task.time.split(':').map(Number);
-                const taskTotalMinutes = (taskH * 60) + taskM;
-                
-                // Compare Date
-                if (task.date === currentDate) {
-                    // Compare Time (Trigger if minute matches OR is within last 5 mins)
-                    if (currentTotalMinutes >= taskTotalMinutes && currentTotalMinutes <= taskTotalMinutes + 5) {
-                        triggerAlarm(task);
-                    }
+    tasks.forEach(task => {
+        if (!task.completed && !task.notified && task.date && task.time) {
+            const [taskH, taskM] = task.time.split(':').map(Number);
+            const taskTotalMinutes = (taskH * 60) + taskM;
+            
+            // Check Date
+            if (task.date === currentDate) {
+                // Check Time: Trigger if matches OR is within last 2 minutes (catch-up if phone lagged)
+                if (currentTotalMinutes >= taskTotalMinutes && currentTotalMinutes <= taskTotalMinutes + 2) {
+                    triggerAlarm(task);
                 }
             }
-        });
-    } catch(e) {
-        console.error("Reminder loop error:", e);
-    }
+        }
+    });
 }
 
 function triggerAlarm(task) {
     task.notified = true;
     saveTasks();
 
-    // 1. Play Sound
+    // 1. Play Real Alarm Sound
     const audio = document.getElementById('alarm-sound');
     if(!audio.src || audio.src === window.location.href) {
         audio.src = "https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3";
     }
-    audio.play().catch(e => console.log("Audio blocked - user inactive"));
+    audio.volume = 1.0;
+    audio.play().catch(e => console.log("Audio blocked", e));
 
     // 2. Send Notification
     if(window.NotificationSystem) {
@@ -103,20 +128,14 @@ function triggerAlarm(task) {
     renderTasks();
 }
 
-// --- STANDARD FUNCTIONS ---
+// --- STANDARD FUNCTIONS (Unchanged) ---
 function saveTasks() { localStorage.setItem('auraTasks', JSON.stringify(tasks)); renderTasks(); }
 
 function addTask(text, date, time) { 
     tasks.unshift({ id: Date.now(), text, date, time, completed: false, notified: false }); 
-    saveTasks();
-    
-    // **IMPORTANT FIX**: Verify audio works immediately when adding task
-    unlockAudioEngine(); 
-    
-    // Visual confirmation
-    if(window.NotificationSystem && Notification.permission === "granted") {
-        // Optional: Small toast to confirm timer is set
-    }
+    saveTasks(); 
+    // Re-ensure background mode is active when user is interacting
+    enableBackgroundMode();
 }
 
 function toggleTask(id) {
@@ -133,8 +152,13 @@ function toggleTask(id) {
     });
     saveTasks();
 }
+
 function deleteTask(id) { tasks = tasks.filter(t => t.id !== id); saveTasks(); }
-window.startFocusOnTask = function(id, text) { if(window.switchView) window.switchView('focus'); if(window.setFocusTask) window.setFocusTask(text); }
+
+window.startFocusOnTask = function(id, text) { 
+    if(window.switchView) window.switchView('focus'); 
+    if(window.setFocusTask) window.setFocusTask(text); 
+}
 
 // --- LISTENERS ---
 taskForm.addEventListener('submit', (e) => { 
@@ -164,7 +188,6 @@ function renderTasks() {
 
     filtered.forEach(task => {
         const li = document.createElement('li');
-        // Visual cue for recently notified tasks
         const isRinging = task.notified && !task.completed && (task.date === new Date().toISOString().split('T')[0]);
         const ringClass = isRinging ? 'ring-2 ring-indigo-500 animate-pulse bg-indigo-50 dark:bg-slate-800' : 'bg-white dark:bg-slate-800 border-slate-100 dark:border-slate-700';
 
