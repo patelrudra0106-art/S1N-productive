@@ -4,7 +4,7 @@ const NotificationSystem = {
     init: function() {
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('./service-worker.js')
-                .then(reg => console.log("✅ SW Ready"))
+                .then(reg => console.log("✅ Service Worker Ready"))
                 .catch(err => console.error("❌ SW Error", err));
         }
         this.updateButtonUI();
@@ -35,37 +35,30 @@ const NotificationSystem = {
     send: function(title, body) {
         if (Notification.permission !== "granted") return;
 
-        // Try Method 1: Service Worker (Native Style)
-        if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+        if ('serviceWorker' in navigator) {
             navigator.serviceWorker.ready.then((registration) => {
                 registration.showNotification(title, {
                     body: body,
                     icon: 'https://cdn-icons-png.flaticon.com/512/906/906334.png',
                     badge: 'https://cdn-icons-png.flaticon.com/512/906/906334.png',
-                    vibrate: [500, 200, 500, 200, 500],
+                    vibrate: [500, 200, 500], // Stronger vibration
                     tag: 'aura-task',
-                    renotify: true,
-                    requireInteraction: true,
+                    renotify: true, // Forces phone to ring again if a new task comes
+                    requireInteraction: true, // Keeps it on screen (System Style)
                     actions: [
-                        { action: 'open', title: 'Open' },
+                        { action: 'open', title: 'Open Aura' },
                         { action: 'close', title: 'Dismiss' }
                     ],
                     data: { url: './index.html' }
                 });
-            }).catch(e => {
-                // FALLBACK Method 2: Standard (If SW fails)
-                console.log("SW Notification failed, using standard.");
-                new Notification(title, { body: body, icon: 'https://cdn-icons-png.flaticon.com/512/906/906334.png' });
             });
-        } 
-        else {
-            // Method 2: Standard
+        } else {
             new Notification(title, { body: body, icon: 'https://cdn-icons-png.flaticon.com/512/906/906334.png' });
         }
     },
     
     test: function() {
-        this.send("Test Notification", "This is the system style! 🔔");
+        this.send("Test Notification", "This is the expanded system style! 🔔");
     }
 };
 
