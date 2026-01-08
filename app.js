@@ -6,7 +6,6 @@ let tasks = JSON.parse(localStorage.getItem('auraTasks')) || [
 ];
 let streak = JSON.parse(localStorage.getItem('auraStreak')) || { count: 0, lastLogin: '' };
 let currentFilter = 'all';
-let audioUnlocked = false; // Track if we have permission to play sound
 
 // --- ELEMENTS ---
 const taskListEl = document.getElementById('task-list');
@@ -36,62 +35,65 @@ document.addEventListener('DOMContentLoaded', () => {
     checkStreak(); 
     renderTasks();
     
-    // Check every 2 seconds
-    setInterval(checkReminders, 2000);
+    // Check every 1 second (More precise)
+    setInterval(checkReminders, 1000);
 
     // Force Check on Wake Up
     document.addEventListener("visibilitychange", () => {
         if (document.visibilityState === "visible") checkReminders();
     });
 
-    // CRITICAL: Unlock Audio on First Click
+    // CRITICAL: Unlock Audio on First Click anywhere
     document.body.addEventListener('click', unlockAudioEngine, { once: true });
 });
 
 function unlockAudioEngine() {
-    if(audioUnlocked) return;
     const audio = document.getElementById('alarm-sound');
     if(audio) {
-        // Play and pause immediately to "warm up" the audio engine
+        // Play silence to warm up engine
         audio.play().then(() => {
             audio.pause();
             audio.currentTime = 0;
-            audioUnlocked = true;
-        }).catch(() => {}); // Ignore initial error
+        }).catch(() => {});
     }
 }
 
-// --- REMINDER LOGIC ---
+// --- REMINDER LOGIC (ROBUST VERSION) ---
 function checkReminders() {
-    const now = new Date();
-    const currentDate = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
-    const currentTotalMinutes = (now.getHours() * 60) + now.getMinutes();
+    try {
+        const now = new Date();
+        const currentDate = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
+        const currentTotalMinutes = (now.getHours() * 60) + now.getMinutes();
 
-    tasks.forEach(task => {
-        if (!task.completed && !task.notified && task.date && task.time) {
-            const [taskH, taskM] = task.time.split(':').map(Number);
-            const taskTotalMinutes = (taskH * 60) + taskM;
-            
-            if (task.date === currentDate) {
-                // Trigger if time matches OR passed by < 2 minutes (tight window to prevent old spam)
-                if (currentTotalMinutes >= taskTotalMinutes && currentTotalMinutes <= taskTotalMinutes + 2) {
-                    triggerAlarm(task);
+        tasks.forEach(task => {
+            if (!task.completed && !task.notified && task.date && task.time) {
+                const [taskH, taskM] = task.time.split(':').map(Number);
+                const taskTotalMinutes = (taskH * 60) + taskM;
+                
+                // Compare Date
+                if (task.date === currentDate) {
+                    // Compare Time (Trigger if minute matches OR is within last 5 mins)
+                    if (currentTotalMinutes >= taskTotalMinutes && currentTotalMinutes <= taskTotalMinutes + 5) {
+                        triggerAlarm(task);
+                    }
                 }
             }
-        }
-    });
+        });
+    } catch(e) {
+        console.error("Reminder loop error:", e);
+    }
 }
 
 function triggerAlarm(task) {
     task.notified = true;
     saveTasks();
 
-    // 1. Play Sound (Now more reliable)
+    // 1. Play Sound
     const audio = document.getElementById('alarm-sound');
     if(!audio.src || audio.src === window.location.href) {
         audio.src = "https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3";
     }
-    audio.play().catch(e => console.log("Audio blocked: User needs to interact with page first"));
+    audio.play().catch(e => console.log("Audio blocked - user inactive"));
 
     // 2. Send Notification
     if(window.NotificationSystem) {
@@ -101,12 +103,22 @@ function triggerAlarm(task) {
     renderTasks();
 }
 
-// --- STANDARD FUNCTIONS (Unchanged) ---
+// --- STANDARD FUNCTIONS ---
 function saveTasks() { localStorage.setItem('auraTasks', JSON.stringify(tasks)); renderTasks(); }
+
 function addTask(text, date, time) { 
     tasks.unshift({ id: Date.now(), text, date, time, completed: false, notified: false }); 
-    saveTasks(); 
+    saveTasks();
+    
+    // **IMPORTANT FIX**: Verify audio works immediately when adding task
+    unlockAudioEngine(); 
+    
+    // Visual confirmation
+    if(window.NotificationSystem && Notification.permission === "granted") {
+        // Optional: Small toast to confirm timer is set
+    }
 }
+
 function toggleTask(id) {
     tasks = tasks.map(t => {
         if(t.id === id) {
@@ -125,7 +137,14 @@ function deleteTask(id) { tasks = tasks.filter(t => t.id !== id); saveTasks(); }
 window.startFocusOnTask = function(id, text) { if(window.switchView) window.switchView('focus'); if(window.setFocusTask) window.setFocusTask(text); }
 
 // --- LISTENERS ---
-taskForm.addEventListener('submit', (e) => { e.preventDefault(); if(taskInput.value.trim()) { addTask(taskInput.value.trim(), dateInput.value, timeInput.value); taskInput.value = ''; addBtn.disabled = true; }});
+taskForm.addEventListener('submit', (e) => { 
+    e.preventDefault(); 
+    if(taskInput.value.trim()) { 
+        addTask(taskInput.value.trim(), dateInput.value, timeInput.value); 
+        taskInput.value = ''; 
+        addBtn.disabled = true; 
+    }
+});
 taskInput.addEventListener('input', (e) => addBtn.disabled = !e.target.value.trim());
 
 filterBtns.forEach(btn => {
@@ -145,6 +164,7 @@ function renderTasks() {
 
     filtered.forEach(task => {
         const li = document.createElement('li');
+        // Visual cue for recently notified tasks
         const isRinging = task.notified && !task.completed && (task.date === new Date().toISOString().split('T')[0]);
         const ringClass = isRinging ? 'ring-2 ring-indigo-500 animate-pulse bg-indigo-50 dark:bg-slate-800' : 'bg-white dark:bg-slate-800 border-slate-100 dark:border-slate-700';
 
