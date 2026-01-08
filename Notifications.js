@@ -108,7 +108,7 @@ const NotificationSystem = {
 
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
-    const bt = document.getElementById('enable-notifs-btn');
+    const btn = document.getElementById('enable-notifs-btn');
     if(btn) btn.addEventListener('click', () => NotificationSystem.requestPermission());
     NotificationSystem.updateButtonUI();
 });
