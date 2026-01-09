@@ -221,6 +221,7 @@
             </button>
         </div>
     </div>
+
     <div id="settings-modal" class="hidden fixed inset-0 z-[100] flex items-center justify-center px-4">
         <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" onclick="closeSettings()"></div>
         <div class="bg-white dark:bg-slate-800 rounded-3xl p-6 w-full max-w-sm shadow-2xl relative animate-fade-in border border-slate-100 dark:border-slate-700">
@@ -236,6 +237,27 @@
 
     <audio id="silence" loop><source src="data:audio/mp3;base64,SUQzBAAAAAAAI1RTSV*****" type="audio/mpeg"></audio>
     <audio id="alarm-sound" preload="auto"><source src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3" type="audio/mpeg"></audio>
+
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    
+    <script>
+        // --- YOUR CONFIGURATION ---
+        const firebaseConfig = {
+          apiKey: "AIzaSyCq2wOw4L_bVUC4rINviWMBGjEtOALmgnE",
+          authDomain: "auratask-fffd1.firebaseapp.com",
+          databaseURL: "https://auratask-fffd1-default-rtdb.firebaseio.com",
+          projectId: "auratask-fffd1",
+          storageBucket: "auratask-fffd1.firebasestorage.app",
+          messagingSenderId: "521351004914",
+          appId: "1:521351004914:web:85825ddda114241372866b",
+          measurementId: "G-4D1Q3FE9NK"
+        };
+      
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+        console.log("Firebase Connected");
+    </script>
 
     <script src="auth.js"></script>
     <script src="social.js"></script>
