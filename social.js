@@ -1,16 +1,12 @@
-/* social.js */
+/* social.js - Cloud Version */
 
-// --- DOM ---
-const socialList = document.getElementById('contest-list'); // Renamed for Contest View
+const socialList = document.getElementById('contest-list'); 
 const searchInput = document.getElementById('user-search');
 
-// --- LOGIC ---
-// Called when switching to "Contest" tab
 window.loadContestData = function() {
     renderLeaderboard();
 };
 
-// Search Listener
 if(searchInput) {
     searchInput.addEventListener('input', (e) => {
         const query = e.target.value.toLowerCase();
@@ -21,45 +17,42 @@ if(searchInput) {
 function renderLeaderboard(filter = '') {
     if (!socialList) return;
     
+    // 1. Show Loading Spinner
     socialList.innerHTML = '<div class="text-center py-8 opacity-50"><i data-lucide="loader-2" class="w-6 h-6 animate-spin mx-auto"></i></div>';
     if(window.lucide) lucide.createIcons();
 
-    // 1. Fetch REAL DB
-    const db = JSON.parse(localStorage.getItem('auraDatabase')) || [];
-    const myUser = JSON.parse(localStorage.getItem('auraUser'));
+    // 2. DOWNLOAD FROM FIREBASE CLOUD
+    firebase.database().ref('users').once('value').then((snapshot) => {
+        const data = snapshot.val(); 
+        
+        // Convert data object to list
+        let users = data ? Object.values(data) : [];
+        const myUser = JSON.parse(localStorage.getItem('auraUser'));
 
-    setTimeout(() => {
-        let users = [...db];
-
-        // 2. Filter
+        // Filter search
         if (filter) {
             users = users.filter(u => u.name.toLowerCase().includes(filter));
         }
 
-        // 3. Sort by Points
+        // Sort by Points (Highest first)
         users.sort((a, b) => b.points - a.points);
 
-        // 4. Render
+        // Render List
         socialList.innerHTML = '';
         
         if (users.length === 0) {
             socialList.innerHTML = `
                 <div class="text-center py-10">
-                    <div class="w-16 h-16 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-3">
-                        <i data-lucide="ghost" class="w-8 h-8 text-slate-300"></i>
-                    </div>
                     <p class="text-slate-400 text-sm">No users found.</p>
                 </div>`;
-            if(window.lucide) lucide.createIcons();
             return;
         }
 
         users.forEach((user, index) => {
-            // Recalculate rank based on full DB, not just filtered view
-            // But for simple search, visual index is fine
             const isMe = myUser && user.name === myUser.name;
             const rank = index + 1;
             
+            // Badges
             let rankHtml = `<span class="text-slate-400 font-bold text-sm w-8 text-center">${rank}</span>`;
             if (rank === 1) rankHtml = `<div class="rank-badge rank-1">1</div>`;
             if (rank === 2) rankHtml = `<div class="rank-badge rank-2">2</div>`;
@@ -87,5 +80,5 @@ function renderLeaderboard(filter = '') {
             socialList.appendChild(li);
         });
         if(window.lucide) lucide.createIcons();
-    }, 200);
+    });
 }
