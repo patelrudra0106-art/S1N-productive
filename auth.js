@@ -1,17 +1,14 @@
-/* auth.js */
+/* auth.js - Cloud Version */
 
 // --- STATE ---
 let currentUser = JSON.parse(localStorage.getItem('auraUser')) || null;
-let userDB = JSON.parse(localStorage.getItem('auraDatabase')) || []; 
 
 // --- DOM ELEMENTS ---
 const authOverlay = document.getElementById('auth-overlay');
-const mainApp = document.getElementById('main-app'); // New wrapper
+const mainApp = document.getElementById('main-app');
 const authTitle = document.getElementById('auth-title');
 const authSubmitBtn = document.getElementById('auth-submit');
 const toggleAuthText = document.getElementById('toggle-auth-mode');
-
-// Inputs
 const nameInput = document.getElementById('auth-name');
 const passInput = document.getElementById('auth-pass');
 const confirmPassField = document.getElementById('field-confirm-pass');
@@ -22,18 +19,18 @@ let isLoginMode = true;
 // --- INIT ---
 document.addEventListener('DOMContentLoaded', () => {
     if (currentUser) {
-        // Logged In: Show App
+        // User is logged in
         if(mainApp) mainApp.classList.remove('hidden');
         if(authOverlay) authOverlay.classList.add('hidden');
-        syncProfileFromDB();
+        listenToStats(); // Keep score updated
     } else {
-        // Logged Out: Show Auth Only
+        // User needs to login
         if(authOverlay) authOverlay.classList.remove('hidden');
         if(mainApp) mainApp.classList.add('hidden');
     }
 });
 
-// --- AUTH UI LOGIC ---
+// --- TOGGLE LOGIN / SIGNUP ---
 window.toggleAuthMode = function() {
     isLoginMode = !isLoginMode;
     if (isLoginMode) {
@@ -49,37 +46,42 @@ window.toggleAuthMode = function() {
     }
 };
 
-// --- AUTH CORE LOGIC ---
+// --- HANDLE SUBMIT (CLOUD) ---
 window.handleAuth = async function(e) {
     e.preventDefault();
-    const name = nameInput.value.trim();
+    
+    // Remove symbols that Firebase hates: . # $ [ ]
+    const name = nameInput.value.trim().replace(/[.#$/[\]]/g, ""); 
     const password = passInput.value;
     const confirmPass = confirmPassInput.value;
 
     if (!name || !password) return alert("Please fill in all fields");
 
+    // Loading State
     authSubmitBtn.disabled = true;
     authSubmitBtn.innerHTML = '<i data-lucide="loader-2" class="w-5 h-5 animate-spin mx-auto"></i>';
     if(window.lucide) lucide.createIcons();
 
-    await new Promise(r => setTimeout(r, 600)); // Fake delay
+    // Check Cloud Database
+    const userRef = firebase.database().ref('users/' + name);
 
     try {
+        const snapshot = await userRef.get();
+        const userData = snapshot.val();
+
         if (isLoginMode) {
-            // LOGIN
-            const user = userDB.find(u => u.name.toLowerCase() === name.toLowerCase() && u.password === password);
-            if (user) {
-                loginUser(user);
+            // LOGIN LOGIC
+            if (userData && userData.password === password) {
+                loginUser(userData);
             } else {
                 throw new Error("Invalid Username or Password");
             }
         } else {
-            // SIGNUP
+            // SIGNUP LOGIC
             if (password !== confirmPass) throw new Error("Passwords do not match");
-            if (userDB.find(u => u.name.toLowerCase() === name.toLowerCase())) throw new Error("Username already taken");
+            if (userData) throw new Error("Username already taken");
 
             const newUser = {
-                id: 'user_' + Date.now(),
                 name: name,
                 password: password,
                 points: 0,
@@ -87,8 +89,8 @@ window.handleAuth = async function(e) {
                 joinDate: new Date().toLocaleDateString()
             };
 
-            userDB.push(newUser);
-            saveDB();
+            // Save new user to Cloud
+            await userRef.set(newUser);
             loginUser(newUser);
         }
     } catch (error) {
@@ -102,20 +104,48 @@ function loginUser(user) {
     currentUser = user;
     localStorage.setItem('auraUser', JSON.stringify(currentUser));
     
-    // Sync profile data
-    const profile = { name: user.name, points: user.points, streak: user.streak, lastTaskDate: null };
+    // Create local profile copy
+    let profile = JSON.parse(localStorage.getItem('auraProfile')) || {};
+    profile.name = user.name;
+    profile.points = user.points;
+    profile.streak = user.streak;
     localStorage.setItem('auraProfile', JSON.stringify(profile));
     
-    // UI Switch
+    // Show App
     authOverlay.classList.add('hidden');
     mainApp.classList.remove('hidden');
-    
-    // Just refresh to clean state
     window.location.reload(); 
 }
 
+// --- SYNC SCORE TO CLOUD ---
+window.syncUserToDB = function(newPoints, newStreak) {
+    if (!currentUser) return;
+    firebase.database().ref('users/' + currentUser.name).update({
+        points: newPoints,
+        streak: newStreak
+    });
+};
+
+function listenToStats() {
+    // If I play on another device, update this device instantly
+    firebase.database().ref('users/' + currentUser.name).on('value', (snapshot) => {
+        const data = snapshot.val();
+        if(data) {
+             let profile = JSON.parse(localStorage.getItem('auraProfile')) || {};
+             if(data.points !== profile.points) {
+                 profile.points = data.points;
+                 profile.streak = data.streak;
+                 localStorage.setItem('auraProfile', JSON.stringify(profile));
+                 // Update the display immediately
+                 const pDisplay = document.getElementById('display-points');
+                 if(pDisplay) pDisplay.textContent = data.points.toLocaleString();
+             }
+        }
+    });
+}
+
 window.logout = function() {
-    if(confirm("Log out of " + currentUser.name + "?")) {
+    if(confirm("Log out?")) {
         localStorage.removeItem('auraUser');
         window.location.reload();
     }
@@ -123,42 +153,11 @@ window.logout = function() {
 
 window.deleteAccount = function() {
     if(!currentUser) return;
-    
-    const confirmDelete = confirm(`Are you sure you want to delete the account "${currentUser.name}"? This will remove your ranking from the contest forever.`);
-    
-    if(confirmDelete) {
-        // 1. Remove user from global DB
-        userDB = userDB.filter(u => u.name !== currentUser.name);
-        saveDB();
-        
-        // 2. Clear Session
-        localStorage.removeItem('auraUser');
-        localStorage.removeItem('auraProfile');
-        
-        // 3. Reload
-        window.location.reload();
+    if(confirm("Delete account permanently? This removes you from the contest.")) {
+        firebase.database().ref('users/' + currentUser.name).remove()
+        .then(() => {
+            localStorage.clear();
+            window.location.reload();
+        });
     }
 };
-
-window.syncUserToDB = function(newPoints, newStreak) {
-    if (!currentUser) return;
-    const index = userDB.findIndex(u => u.name === currentUser.name);
-    if (index !== -1) {
-        userDB[index].points = newPoints;
-        userDB[index].streak = newStreak;
-        saveDB();
-    }
-};
-
-function saveDB() { localStorage.setItem('auraDatabase', JSON.stringify(userDB)); }
-
-function syncProfileFromDB() {
-    userDB = JSON.parse(localStorage.getItem('auraDatabase')) || [];
-    const freshData = userDB.find(u => u.name === currentUser.name);
-    if(freshData) {
-        let profile = JSON.parse(localStorage.getItem('auraProfile')) || {};
-        profile.points = freshData.points;
-        profile.streak = freshData.streak;
-        localStorage.setItem('auraProfile', JSON.stringify(profile));
-    }
-}
