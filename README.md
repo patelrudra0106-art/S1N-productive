@@ -1,50 +1,52 @@
 # 🌟 Aura Productivity
 
-**Aura** is a comprehensive productivity application that combines a smart task manager with a gamified focus timer. Built to help users build consistent habits, it features a sleek dark/light mode UI, XP rewards system, and a simulated social leaderboard.
+**Aura** is a gamified productivity application designed to help you stay focused, manage tasks, and build consistent habits. It combines a powerful **Task Manager** with a customizable **Pomodoro Timer**, wrapped in a beautiful, dark-mode-ready interface with XP rewards and leaderboards.
 
 ## ✨ Features
 
 ### 📝 Smart Task Management
 * **ToDo List:** Add tasks with optional due dates and specific times.
-* **Intelligent Reminders:** Audio alarms and visual notifications when tasks are due.
-* **Filtering:** View All, Active, or Completed tasks.
-* **Task Linking:** One-click to start a "Focus Session" specifically for a selected task.
+* **Intelligent Reminders:** Triggers audio alarms and visual notifications when a task is due.
+* **Filtering:** Easily toggle between All, Active, and Completed tasks.
+* **Task Linking:** Link a specific task to the timer to start a "Focus Session" for that item.
+* **Rewards:** Earn points for completing tasks, with bonuses for finishing before the deadline.
 
 ### ⏱️ Focus Timer (Pomodoro)
-* **Flexible Modes:** Preset intervals for **Focus Time** (25m), **Short Break** (5m), and **Long Break** (15m).
-* **Visual Timer:** Circular progress ring with smooth animations.
-* **Session History:** Logs duration and task labels for every completed session.
-* **Background Support:** Utilizes the Wake Lock API to keep the screen active during focus sessions.
+* **Customizable Modes:** Work (Focus), Short Break, and Long Break intervals.
+* **Visual Progress:** Features a circular progress ring with smooth animations.
+* **Session History:** Tracks recent sessions, duration, and labels.
+* **Configurable Settings:** Adjust timer durations directly from the settings menu.
 
 ### 🎮 Gamification & Social
-* **XP System:** Earn points for completing tasks (20pts), finishing early (50pts), and completing focus sessions (50pts).
-* **Streaks:** Daily streak counter to encourage consistency.
-* **Global Contest:** A simulated leaderboard to compete with other users.
-* **User Profiles:** Track your total points, current streak, and rank.
+* **XP System:** Earn points for productivity actions (e.g., +50 points for a focus session, +20 for tasks).
+* **Streaks:** Tracks daily activity streaks to encourage consistency.
+* **Global Contest:** A simulated leaderboard to view rankings and compete with other users.
+* **User Profiles:** View your total points, current streak, and rank.
 
 ### 🎨 Modern UI/UX
-* **Adaptive Theme:** Toggle between **Light Mode** and **Dark Mode** (persists in LocalStorage).
-* **Glassmorphism:** Modern design with backdrop blur effects and smooth transitions.
-* **PWA Ready:** Includes `manifest.json` and a Service Worker for installability on mobile/desktop.
+* **Adaptive Theme:** One-click toggle between **Light Mode** and **Dark Mode**.
+* **Glassmorphism:** Modern aesthetic with backdrop blur effects.
+* **Interactive Elements:** Includes confetti celebrations and toast notifications.
+* **PWA Support:** Installable on mobile and desktop devices via `manifest.json` and Service Workers.
 
 ---
 
 ## 🛠️ Tech Stack
 
-* **Frontend:** HTML5, CSS3, Vanilla JavaScript
+* **Core:** HTML5, CSS3, Vanilla JavaScript (ES6+)
 * **Styling:** [Tailwind CSS](https://tailwindcss.com/) (via CDN)
 * **Icons:** [Lucide Icons](https://lucide.dev/)
-* **Animations:** CSS Transitions & [Canvas Confetti](https://www.kirilv.com/canvas-confetti/)
-* **Data Storage:** Browser `localStorage` (No backend required).
+* **Effects:** [Canvas Confetti](https://www.kirilv.com/canvas-confetti/)
+* **Storage:** `localStorage` (No backend required; data persists in the browser)
 
 ---
 
 ## 🚀 Getting Started
 
-Since Aura is built with vanilla web technologies, no build process is required.
+Since Aura is built with vanilla web technologies, you don't need a complex build step.
 
 ### Prerequisites
-A modern web browser (Chrome, Edge, Firefox, Safari).
+You need a modern web browser (Chrome, Firefox, Safari, Edge).
 
 ### Installation
 
@@ -55,50 +57,57 @@ A modern web browser (Chrome, Edge, Firefox, Safari).
     ```
 
 2.  **Run the application:**
-    * **Simple Method:** Open `index.html` directly in your browser.
-    * **PWA Method (Recommended):** To ensure the Service Worker functions correctly, use a local server:
+    * **Option A (Simple):** Double-click `index.html` to open it in your browser.
+    * **Option B (Recommended for PWA):** Use a local static server to ensure the Service Worker functions correctly.
         ```bash
-        # Python 3
+        # If you have Python installed:
         python -m http.server 8000
-        # Or using VS Code "Live Server" extension
+        # Then open http://localhost:8000
         ```
-        Then visit `http://localhost:8000`.
 
 ---
 
-## 📂 Project Structure
+## 📖 User Guide
 
-```text
-aura-productivity/
-├── index.html          # Main application layout and PWA entry
-├── style.css           # Global styles and animations
-├── manifest.json       # PWA metadata
-├── service-worker.js   # Offline caching capabilities
-├── auth.js             # User login/signup simulation
-├── app.js              # Task management logic
-├── pomodoro.js         # Timer logic and settings
-├── profile.js          # Gamification (Points & Streaks)
-├── social.js           # Leaderboard logic
-└── notifications.js    # In-app toast notification system
+### 1. Account & Profile
+* **Sign Up/Login:** When you open the app, enter a username to create a local profile. This tracks your points and streaks.
+* **View Profile:** Click the user icon in the top right to see your total XP and current streak.
 
+### 2. Managing Tasks
+* **Add a Task:** Type your task in the input field. Optionally, click the Calendar or Clock icons to set a deadline.
+* **Reminders:** If you set a time, Aura will play a sound and show a notification when the task is due.
+* **Complete Task:** Click the circle/check button to finish a task.
+    * **Standard Reward:** +20 Points.
+    * **Early Bird Bonus:** +50 Points (if completed before the deadline).
 
-##⚙️ Configuration
-​You can customize the timer settings directly within the app:
-1.​Click the Settings (Gear) icon in the header.
+### 3. Using the Focus Timer
+* **Start Focus:** Navigate to the "Focus" tab. Click the **Play** button to start the timer.
+* **Link Task:** From the Task list, click the small "Play" icon next to a task to automatically switch to the timer and tag that task.
+* **Rewards:** Completing a full "Focus" session awards **+50 Points**. Breaks do not award points.
+* **Settings:** Click the "Gear" icon to change the duration of Focus, Short Break, and Long Break modes.
 
-2.​Adjust durations for Focus, Short Break, and Long Break.
+### 4. Leaderboard (Contest)
+* Navigate to the **Contest** tab to see the leaderboard.
+* You will see your rank compared to other (simulated) users. Your rank is determined by your total XP.
 
-3.​Click Save Changes (Settings are saved to localStorage).
-##​🤝 Contributing
-​Contributions are welcome! Please follow these steps:
+---
 
-1.​Fork the project.
+## 🤝 Contribution
 
-2.​Create your feature branch (git checkout -b feature/AmazingFeature).
+Contributions are welcome! If you'd like to improve Aura, please follow these guidelines:
 
-3.​Commit your changes (git commit -m 'Add some AmazingFeature').
+### How to Contribute
+1.  **Fork the Project:** Create your own copy of the repository.
+2.  **Create your Feature Branch:** `git checkout -b feature/AmazingFeature`
+3.  **Commit your Changes:** `git commit -m 'Add some AmazingFeature'`
+4.  **Push to the Branch:** `git push origin feature/AmazingFeature`
+5.  **Open a Pull Request:** Describe your changes and submit them for review.
 
-4.​Push to the branch (git push origin feature/AmazingFeature).
+### Development Notes
+* **Styling:** We use **Tailwind CSS** via CDN. Please stick to Tailwind utility classes for styling changes.
+* **Icons:** Use **Lucide Icons** names for any new iconography.
+* **Storage:** All data is currently handled via `localStorage`. If you are adding new features, ensure they persist data correctly using the existing patterns in `app.js` or `pomodoro.js`.
 
-5.​Open a Pull Request.
+---
 
+Made with ❤️ and Focus.
