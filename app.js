@@ -1,8 +1,19 @@
 /* app.js */
 
+// --- HELPER: USER SPECIFIC STORAGE ---
+// This function creates a unique key based on the logged-in user (e.g., 'auraTasks_Steve')
+function getStorageKey() {
+    const user = JSON.parse(localStorage.getItem('auraUser'));
+    if (user && user.name) {
+        return `auraTasks_${user.name}`;
+    }
+    // Default for guests or logged out users
+    return 'auraTasks_guest';
+}
+
 // --- STATE ---
-// We add 'rewarded: false' to track if points were already given
-let tasks = JSON.parse(localStorage.getItem('auraTasks')) || [
+// We now load tasks using the dynamic key
+let tasks = JSON.parse(localStorage.getItem(getStorageKey())) || [
     { id: 1, text: 'Welcome to Aura! 👋', date: '', time: '', completed: false, notified: false, rewarded: false }
 ];
 let currentFilter = 'all';
@@ -87,10 +98,13 @@ function triggerAlarm(task) {
 }
 
 // --- STANDARD FUNCTIONS ---
-function saveTasks() { localStorage.setItem('auraTasks', JSON.stringify(tasks)); renderTasks(); }
+function saveTasks() { 
+    // UPDATED: Save to the user-specific key
+    localStorage.setItem(getStorageKey(), JSON.stringify(tasks)); 
+    renderTasks(); 
+}
 
 function addTask(text, date, time) { 
-    // New tasks start as rewarded: false
     tasks.unshift({ id: Date.now(), text, date, time, completed: false, notified: false, rewarded: false }); 
     saveTasks(); 
     enableBackgroundMode(); 
@@ -100,13 +114,11 @@ function toggleTask(id) {
     tasks = tasks.map(t => {
         if(t.id === id) {
             const isCompleted = !t.completed;
-            // By default, keep the existing rewarded status
             let markRewarded = t.rewarded; 
             
             if(isCompleted) {
-                // FIXED: Only award points if NOT previously rewarded
                 if (!t.rewarded) {
-                    markRewarded = true; // Lock it so they can't get points again
+                    markRewarded = true;
 
                     if(window.updateStreak) window.updateStreak();
                     if(window.confetti) confetti({ particleCount: 50, spread: 60, origin: { y: 0.7 }, colors: ['#6366f1'] });
@@ -139,7 +151,6 @@ function toggleTask(id) {
                     }
                 }
             }
-            // We update 'rewarded' in the state
             return {...t, completed: isCompleted, rewarded: markRewarded};
         }
         return t;
