@@ -82,14 +82,14 @@ aura-productivity/
 └── notifications.js    # In-app toast notification system
 
 
-⚙️ Configuration
+##⚙️ Configuration
 ​You can customize the timer settings directly within the app:
 1.​Click the Settings (Gear) icon in the header.
 
 2.​Adjust durations for Focus, Short Break, and Long Break.
 
 3.​Click Save Changes (Settings are saved to localStorage).
-​🤝 Contributing
+##​🤝 Contributing
 ​Contributions are welcome! Please follow these steps:
 
 1.​Fork the project.
