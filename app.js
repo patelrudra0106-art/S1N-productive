@@ -128,7 +128,7 @@ function toggleTask(id) {
                         let reason = "";
 
                         if (!t.time) {
-                            points = 20;
+                            points = 5;
                             reason = "Task completed";
                         } else {
                             const now = new Date();
@@ -140,10 +140,10 @@ function toggleTask(id) {
                             const taskTime = taskDate.getTime();
 
                             if (nowTime <= taskTime) {
-                                points = 50;
+                                points = 20;
                                 reason = "Early Completion Bonus!";
                             } else {
-                                points = 10;
+                                points = -50;
                                 reason = "Completed after deadline.";
                             }
                         }
