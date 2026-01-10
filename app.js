@@ -1,7 +1,7 @@
 /* app.js */
 
 // --- HELPER: USER SPECIFIC STORAGE ---
-// This function creates a unique key based on the logged-in user (e.g., 'auraTasks_Steve')
+// This function creates a unique key based on the logged-in user
 function getStorageKey() {
     const user = JSON.parse(localStorage.getItem('auraUser'));
     if (user && user.name) {
@@ -12,7 +12,6 @@ function getStorageKey() {
 }
 
 // --- STATE ---
-// We now load tasks using the dynamic key
 let tasks = JSON.parse(localStorage.getItem(getStorageKey())) || [
     { id: 1, text: 'Welcome to Aura! 👋', date: '', time: '', completed: false, notified: false, rewarded: false }
 ];
@@ -31,7 +30,7 @@ const filterBtns = document.querySelectorAll('.filter-btn');
 
 // --- INIT ---
 document.addEventListener('DOMContentLoaded', () => {
-    // Theme Logic
+    // RESTORED: Theme Logic
     const themeToggle = document.getElementById('theme-toggle');
     if(themeToggle) {
         themeToggle.addEventListener('click', () => {
@@ -99,7 +98,6 @@ function triggerAlarm(task) {
 
 // --- STANDARD FUNCTIONS ---
 function saveTasks() { 
-    // UPDATED: Save to the user-specific key
     localStorage.setItem(getStorageKey(), JSON.stringify(tasks)); 
     renderTasks(); 
 }
