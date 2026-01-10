@@ -6,7 +6,6 @@ const ASSETS_TO_CACHE = [
   './app.js',
   './pomodoro.js',
   './manifest.json',
-  // ADD THESE NEW FILES:
   './auth.js',
   './social.js',
   './notifications.js',
