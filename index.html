@@ -96,6 +96,10 @@
                     <span id="streak-count" class="text-sm font-bold text-orange-600 dark:text-orange-400">0</span>
                 </div>
                 
+                <button onclick="switchView('shop')" class="p-2.5 rounded-full bg-white dark:bg-slate-800/50 backdrop-blur-md border border-slate-200 dark:border-slate-700 shadow-sm hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors group">
+                    <i data-lucide="shopping-bag" class="w-5 h-5 text-indigo-500 group-hover:scale-110 transition-transform"></i>
+                </button>
+
                 <button onclick="window.openAccount()" class="p-2.5 rounded-full bg-white dark:bg-slate-800/50 backdrop-blur-md border border-slate-200 dark:border-slate-700 shadow-sm hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
                     <i data-lucide="user" class="w-5 h-5 text-indigo-500"></i>
                 </button>
@@ -210,6 +214,20 @@
                 </div>
                 
                 <div id="contest-list" class="pb-24 min-h-[300px]"></div>
+            </section>
+            
+            <section id="view-shop" class="view-section hidden transition-all duration-300 pt-4">
+                <div class="bg-gradient-to-br from-cyan-500 to-blue-600 rounded-3xl p-6 text-white shadow-lg shadow-cyan-500/30 mb-6 relative overflow-hidden">
+                    <i data-lucide="shopping-bag" class="absolute -right-4 -bottom-4 w-32 h-32 text-white opacity-10 rotate-12"></i>
+                    <h2 class="text-xl font-bold mb-1">Point Shop</h2>
+                    <p class="text-cyan-100 text-sm opacity-90">Spend points on upgrades</p>
+                    <div class="mt-4 inline-block bg-white/20 backdrop-blur-md px-3 py-1 rounded-lg text-sm font-bold">
+                        <span id="shop-points-display">0</span> Points
+                    </div>
+                </div>
+                
+                <div id="shop-list" class="grid gap-4 pb-24">
+                    </div>
             </section>
 
             <section id="view-admin" class="view-section hidden transition-all duration-300 pt-4">
@@ -396,6 +414,7 @@
     <script src="app.js"></script>
     <script src="pomodoro.js"></script>
     <script src="reports.js"></script>
+    <script src="shop.js"></script>
     
     <script>
         lucide.createIcons();
@@ -405,7 +424,8 @@
                 focus: document.getElementById('view-focus'), 
                 reports: document.getElementById('view-reports'),
                 contest: document.getElementById('view-contest'),
-                admin: document.getElementById('view-admin') 
+                admin: document.getElementById('view-admin'),
+                shop: document.getElementById('view-shop')
             };
             const navs = { 
                 tasks: document.getElementById('nav-tasks'), 
@@ -457,6 +477,7 @@
             if(viewName === 'contest' && window.loadContestData) window.loadContestData();
             if(viewName === 'reports' && window.initReports) window.initReports();
             if(viewName === 'admin' && window.loadAdminPanel) window.loadAdminPanel();
+            if(viewName === 'shop' && window.loadShop) window.loadShop();
         }
     </script>
 </body>

@@ -1,4 +1,4 @@
-/* social.js - Complete Version (Fixed Owner Hiding) */
+/* social.js */
 
 const socialList = document.getElementById('contest-list'); 
 const searchInput = document.getElementById('user-search');
@@ -6,7 +6,6 @@ let socialViewMode = 'global'; // 'global', 'friends', or 'league'
 let hasCelebrated = false; 
 
 window.loadContestData = function() {
-    // Determine which header to show on load
     if(socialViewMode === 'league' || socialViewMode === 'global') {
         renderLeagueHeader();
     } else {
@@ -18,9 +17,8 @@ window.loadContestData = function() {
 // Toggle Tabs
 window.setSocialTab = function(mode) {
     socialViewMode = mode;
-    hasCelebrated = false; // Reset celebration state
+    hasCelebrated = false; 
     
-    // Reset buttons
     const defaultClass = "flex-1 py-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl text-sm font-medium transition-all";
     const activeClass = "flex-1 py-2 bg-indigo-600 text-white rounded-xl text-sm font-bold shadow-md transition-all";
     const leagueActiveClass = "flex-1 py-2 bg-gradient-to-r from-amber-500 to-orange-600 text-white rounded-xl text-sm font-bold shadow-md transition-all";
@@ -33,7 +31,6 @@ window.setSocialTab = function(mode) {
     if(tabFriends) tabFriends.className = defaultClass;
     if(tabLeague) tabLeague.className = defaultClass;
 
-    // Set Active Class & Manage Header
     if (mode === 'league') {
         if(tabLeague) tabLeague.className = leagueActiveClass;
         renderLeagueHeader();
@@ -41,7 +38,6 @@ window.setSocialTab = function(mode) {
         if(tabGlobal) tabGlobal.className = activeClass;
         renderLeagueHeader();
     } else {
-        // Friends
         if(tabFriends) tabFriends.className = activeClass;
         removeLeagueHeader();
     }
@@ -56,23 +52,16 @@ if(searchInput) {
 }
 
 // --- FRIEND ACTIONS ---
-
 window.addFriend = function(targetName) {
     const currentUser = JSON.parse(localStorage.getItem('auraUser'));
     if (!currentUser) return alert("Please log in to add friends.");
 
     if (!currentUser.friends) currentUser.friends = [];
-    
-    // Prevent duplicates
-    if (currentUser.friends.includes(targetName)) {
-        return alert("User is already your friend!");
-    }
+    if (currentUser.friends.includes(targetName)) return alert("User is already your friend!");
 
-    // Update Local State
     currentUser.friends.push(targetName);
     localStorage.setItem('auraUser', JSON.stringify(currentUser));
 
-    // Sync to Firebase
     firebase.database().ref('users/' + currentUser.name).update({
         friends: currentUser.friends
     }).then(() => {
@@ -91,7 +80,6 @@ window.removeFriend = function(targetName) {
         currentUser.friends = currentUser.friends.filter(name => name !== targetName);
         localStorage.setItem('auraUser', JSON.stringify(currentUser));
 
-        // Sync to Firebase
         firebase.database().ref('users/' + currentUser.name).update({
             friends: currentUser.friends
         }).then(() => {
@@ -101,7 +89,7 @@ window.removeFriend = function(targetName) {
     }
 };
 
-// --- VIEW PROFILE (ENHANCED VERSION) ---
+// --- VIEW PROFILE ---
 window.viewFriendProfile = function(targetName) {
     const modal = document.getElementById('friend-modal');
     const content = document.getElementById('friend-modal-content');
@@ -110,7 +98,6 @@ window.viewFriendProfile = function(targetName) {
 
     if(!modal || !content) return;
 
-    // Show loading state
     modal.classList.remove('hidden');
     content.innerHTML = '<div class="text-center py-8 opacity-50"><i data-lucide="loader-2" class="w-8 h-8 animate-spin mx-auto text-indigo-500"></i></div>';
     if(window.lucide) lucide.createIcons();
@@ -123,30 +110,32 @@ window.viewFriendProfile = function(targetName) {
         }
 
         const joinDate = user.joinDate || "Unknown";
-        
-        // --- NEW STATS CALCULATIONS ---
         const tasks = user.totalTasks || 0;
         const minutes = user.totalMinutes || 0;
         const sessions = user.totalSessions || 0;
         const onTime = user.tasksOnTime || 0;
         const late = user.tasksLate || 0;
-        
-        // Calculate Efficiency (Minutes per Task)
         const efficiency = tasks > 0 ? Math.round(minutes / tasks) : 0;
-
-        // Calculate Performance Bar percentages
         const totalRated = (onTime + late) || 1;
         const onTimePct = Math.round((onTime / totalRated) * 100);
         const latePct = Math.round((late / totalRated) * 100);
 
+        // Inventory Check
+        const inventory = user.inventory || [];
+        const isGold = inventory.includes('golden_name');
+        const hasBadge = inventory.includes('dev_badge');
+
         content.innerHTML = `
             <div class="flex justify-between items-start mb-6">
                 <div class="flex items-center gap-3">
-                    <div class="w-12 h-12 rounded-full bg-indigo-100 dark:bg-indigo-900/50 flex items-center justify-center text-indigo-600 dark:text-indigo-400 font-bold text-xl">
+                    <div class="w-12 h-12 rounded-full ${isGold ? 'bg-amber-100 text-amber-600' : 'bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400'} flex items-center justify-center font-bold text-xl">
                         ${user.name.charAt(0).toUpperCase()}
                     </div>
                     <div>
-                        <h3 class="text-lg font-bold text-slate-800 dark:text-slate-100">${user.name}</h3>
+                        <h3 class="text-lg font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
+                            ${user.name}
+                            ${hasBadge ? '<i data-lucide="heart" class="w-4 h-4 text-rose-500 fill-rose-500"></i>' : ''}
+                        </h3>
                         <p class="text-xs text-slate-400">Joined ${joinDate}</p>
                     </div>
                 </div>
@@ -216,7 +205,7 @@ window.viewFriendProfile = function(targetName) {
     });
 };
 
-// --- HEADER (MONTHLY & YEARLY) ---
+// --- LEAGUE HEADER ---
 function renderLeagueHeader() {
     const container = document.getElementById('view-contest');
     let header = document.getElementById('league-header');
@@ -225,7 +214,6 @@ function renderLeagueHeader() {
         header = document.createElement('div');
         header.id = 'league-header';
         header.className = "mb-6 bg-amber-50 dark:bg-amber-900/10 border border-amber-100 dark:border-amber-900/30 rounded-2xl p-4 flex items-center justify-between animate-fade-in";
-        
         const searchDiv = document.querySelector('#view-contest .relative.group');
         if(searchDiv && searchDiv.parentNode) {
             searchDiv.parentNode.insertBefore(header, searchDiv.nextSibling);
@@ -238,15 +226,13 @@ function renderLeagueHeader() {
     let labelSub = "";
 
     if (socialViewMode === 'league') {
-        // Month End Logic
         const lastDayOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
         const diff = lastDayOfMonth.getTime() - now.getTime();
         daysLeft = Math.ceil(diff / (1000 * 3600 * 24));
         labelTitle = "Season Ends Soon";
         labelSub = "Top 3 win badges!";
     } else {
-        // Year End Logic (Global)
-        const lastDayOfYear = new Date(now.getFullYear(), 11, 31); // Dec 31
+        const lastDayOfYear = new Date(now.getFullYear(), 11, 31);
         const diff = lastDayOfYear.getTime() - now.getTime();
         daysLeft = Math.ceil(diff / (1000 * 3600 * 24));
         labelTitle = "Year Ends Soon";
@@ -276,7 +262,7 @@ function removeLeagueHeader() {
     if(header) header.remove();
 }
 
-// --- CORE RENDER FUNCTION ---
+// --- RENDER LEADERBOARD ---
 function renderLeaderboard(filter = '') {
     if (!socialList) return;
     
@@ -285,29 +271,22 @@ function renderLeaderboard(filter = '') {
 
     firebase.database().ref('users').once('value').then((snapshot) => {
         const data = snapshot.val(); 
-        
-        // --- SAFE DATA HANDLING ---
-        // 1. Ensure 'data' exists. If null, use empty array.
-        // 2. Map object to array safely.
         let users = [];
         if (data) {
              users = Object.entries(data).map(([key, value]) => {
-                // Ensure name is present, fallback to key if missing
                 if (!value.name) { value.name = key; }
                 return value;
             });
         }
 
         const myUser = JSON.parse(localStorage.getItem('auraUser'));
-        
         const now = new Date();
-        const currentMonthStr = now.toISOString().slice(0, 7); // "2026-01"
-        const currentYearStr = now.getFullYear().toString();   // "2026"
+        const currentMonthStr = now.toISOString().slice(0, 7); 
+        const currentYearStr = now.getFullYear().toString();   
 
-        // --- FILTERING & SORTING ---
         users = users.map(u => {
             let score = 0;
-            const userLastMonth = u.lastActiveMonth || ""; // "YYYY-MM"
+            const userLastMonth = u.lastActiveMonth || ""; 
             
             if (socialViewMode === 'league') {
                 score = (userLastMonth === currentMonthStr) ? (u.monthlyPoints || 0) : 0;
@@ -318,7 +297,6 @@ function renderLeaderboard(filter = '') {
             return { ...u, displayScore: score };
         });
 
-        // --- HIDE ADMIN (OWNER) ---
         users = users.filter(u => u.name !== 'Owner');
 
         if (socialViewMode === 'friends' && myUser) {
@@ -332,14 +310,12 @@ function renderLeaderboard(filter = '') {
 
         users.sort((a, b) => b.displayScore - a.displayScore);
 
-        // --- RENDERING ---
         socialList.innerHTML = '';
         if (users.length === 0) {
             socialList.innerHTML = `<div class="text-center py-10"><p class="text-slate-400 text-sm">No users found.</p></div>`;
             return;
         }
 
-        // Logic for "Last Day" Calculation
         const tomorrow = new Date(now);
         tomorrow.setDate(tomorrow.getDate() + 1);
         const isLastDayOfMonth = tomorrow.getDate() === 1;
@@ -350,13 +326,20 @@ function renderLeaderboard(filter = '') {
             const isFriend = myUser && myUser.friends && myUser.friends.includes(user.name);
             const rank = index + 1;
             
+            // Check Items
+            const inventory = user.inventory || [];
+            const isGold = inventory.includes('golden_name');
+            const hasBadge = inventory.includes('dev_badge');
+            
+            // Apply Gold Class
+            const nameColorClass = isGold ? "text-amber-500 drop-shadow-sm" : "text-slate-700 dark:text-slate-200";
+
             // Rank Badge
             let rankHtml = `<span class="text-slate-400 font-bold text-sm w-8 text-center">${rank}</span>`;
             if (rank === 1) rankHtml = `<div class="rank-badge rank-1 animate-pop">1</div>`;
             else if (rank === 2) rankHtml = `<div class="rank-badge rank-2">2</div>`;
             else if (rank === 3) rankHtml = `<div class="rank-badge rank-3">3</div>`;
 
-            // --- VICTORY LOGIC ---
             if (isMe && rank === 1 && !filter && !hasCelebrated) {
                 let shouldCelebrate = false;
                 let title = "";
@@ -381,7 +364,6 @@ function renderLeaderboard(filter = '') {
                 }
             }
 
-            // Action Buttons
             let actionBtn = '';
             if (!isMe) {
                 if (isFriend) {
@@ -393,7 +375,6 @@ function renderLeaderboard(filter = '') {
                  actionBtn = `<button onclick="viewFriendProfile('${user.name}')" class="p-2 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 rounded-lg"><i data-lucide="user" class="w-4 h-4"></i></button>`;
             }
 
-            // Row Styling
             const li = document.createElement('div');
             const specialClass = (isMe && rank === 1) 
                 ? 'bg-gradient-to-r from-indigo-50 to-amber-50 dark:from-indigo-900/20 dark:to-amber-900/10 border-amber-200 dark:border-amber-500/50' 
@@ -408,8 +389,9 @@ function renderLeaderboard(filter = '') {
                 <div class="flex items-center gap-4">
                     ${rankHtml}
                     <div>
-                        <p class="text-sm font-bold text-slate-700 dark:text-slate-200 flex items-center gap-2">
+                        <p class="text-sm font-bold ${nameColorClass} flex items-center gap-2">
                             ${user.name} 
+                            ${hasBadge ? '<i data-lucide="heart" class="w-3 h-3 text-rose-500 fill-rose-500"></i>' : ''}
                             ${isMe ? '<span class="text-[10px] bg-indigo-100 dark:bg-indigo-500 text-indigo-700 dark:text-white px-1.5 rounded">YOU</span>' : ''}
                             ${rank === 1 && socialViewMode === 'league' ? '<span class="text-[10px] bg-amber-100 text-amber-700 px-1.5 rounded flex items-center gap-1"><i data-lucide="crown" class="w-3 h-3"></i> King</span>' : ''}
                         </p>

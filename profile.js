@@ -22,14 +22,12 @@ let userProfile = JSON.parse(localStorage.getItem('auraProfile')) || {
     let hasChanged = false;
 
     // 1. YEARLY RESET (Global = Full Year)
-    // If the saved year is different from now, reset main points
     if (savedYear && savedYear !== currentYear) {
         userProfile.points = 0;
         hasChanged = true;
     }
 
     // 2. MONTHLY RESET
-    // If the saved month is different, reset monthly points
     if (savedMonth !== currentMonth) {
         userProfile.monthlyPoints = 0;
         userProfile.lastActiveMonth = currentMonth;
@@ -38,8 +36,6 @@ let userProfile = JSON.parse(localStorage.getItem('auraProfile')) || {
 
     if (hasChanged) {
         saveProfile();
-        // If logged in, we should ideally sync 0 to DB immediately, 
-        // but it will sync on the next task/point update automatically.
     }
 })();
 
@@ -51,10 +47,8 @@ const profileNameDisplay = document.getElementById('profile-name');
 
 // --- LOGIC ---
 window.addPoints = function(amount, reason) {
-    // 1. Update Yearly Points
     userProfile.points += amount;
     
-    // 2. Update Monthly Points (Check month again just in case)
     const currentMonth = new Date().toISOString().slice(0, 7);
     if (userProfile.lastActiveMonth !== currentMonth) {
         userProfile.monthlyPoints = 0;
@@ -65,7 +59,6 @@ window.addPoints = function(amount, reason) {
     saveProfile();
     updateProfileUI();
     
-    // 3. Sync to Cloud
     if(window.syncUserToDB) window.syncUserToDB(userProfile.points, userProfile.streak, userProfile.monthlyPoints, userProfile.lastActiveMonth);
     
     if(amount > 0 && window.showNotification) window.showNotification(`+${amount} Points!`, reason, 'success');
@@ -114,19 +107,16 @@ window.openAccount = function() {
 
 window.closeAccount = function() {
     const modal = document.getElementById('account-modal');
-    // Hide password form when closing modal to reset state
     const passForm = document.getElementById('change-pass-form');
     if(passForm) passForm.classList.add('hidden');
-    
     if(modal) modal.classList.add('hidden');
 };
 
-// --- PASSWORD RESET LOGIC (NEW) ---
+// --- PASSWORD RESET LOGIC ---
 window.toggleChangePass = function() {
     const form = document.getElementById('change-pass-form');
     if(form) {
         form.classList.toggle('hidden');
-        // Clear inputs when toggling
         const old = document.getElementById('cp-old');
         const newP = document.getElementById('cp-new');
         if(old) old.value = '';
@@ -142,21 +132,17 @@ window.submitChangePass = async function() {
     const oldPass = oldPassInput.value;
     const newPass = newPassInput.value;
     
-    // Validation
     if(!oldPass || !newPass) return alert("Please fill in both fields.");
     if(newPass.length < 4) return alert("New password is too short.");
     
-    // Get Current User
     const user = JSON.parse(localStorage.getItem('auraUser'));
     if(!user) return alert("You must be logged in.");
 
-    // UI Loading State
     const originalText = btn.textContent;
     btn.textContent = "Updating...";
     btn.disabled = true;
 
     try {
-        // 1. Check if Old Password matches DB (Double security)
         const snapshot = await firebase.database().ref('users/' + user.name).once('value');
         const dbUser = snapshot.val();
         
@@ -164,26 +150,36 @@ window.submitChangePass = async function() {
             throw new Error("Current password is incorrect.");
         }
 
-        // 2. Update to New Password
         await firebase.database().ref('users/' + user.name).update({
             password: newPass
         });
 
-        // 3. Update Local Storage
         user.password = newPass;
         localStorage.setItem('auraUser', JSON.stringify(user));
 
-        // 4. Success UI
         alert("Password updated successfully!");
-        window.toggleChangePass(); // Close form
+        window.toggleChangePass(); 
         
     } catch (error) {
         alert("Error: " + error.message);
     } finally {
-        // Reset Button
         btn.textContent = originalText;
         btn.disabled = false;
     }
+};
+
+// --- SHOP LOGIC (NEW) ---
+window.spendPoints = function(amount) {
+    if (userProfile.points < amount) return false;
+    
+    userProfile.points -= amount;
+    saveProfile();
+    updateProfileUI();
+    
+    // Sync to DB
+    if(window.syncUserToDB) window.syncUserToDB(userProfile.points, userProfile.streak, userProfile.monthlyPoints, userProfile.lastActiveMonth);
+    
+    return true;
 };
 
 // Init
