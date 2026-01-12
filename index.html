@@ -212,25 +212,6 @@
                 <div id="contest-list" class="pb-24 min-h-[300px]"></div>
             </section>
 
-            <section id="view-shop" class="view-section hidden transition-all duration-300 pt-4">
-                <div class="bg-gradient-to-br from-cyan-500 to-blue-600 rounded-3xl p-6 text-white shadow-lg shadow-cyan-500/30 mb-6 relative overflow-hidden">
-                    <div class="relative z-10">
-                        <h2 class="text-xl font-bold mb-1">Item Shop</h2>
-                        <div class="flex items-center gap-2 text-cyan-50">
-                            <i data-lucide="coins" class="w-4 h-4"></i>
-                            <span id="shop-balance" class="font-bold text-lg">0</span> Coins
-                        </div>
-                    </div>
-                    <i data-lucide="shopping-bag" class="absolute right-[-20px] bottom-[-20px] w-32 h-32 text-white opacity-10 rotate-12"></i>
-                </div>
-
-                <div class="mb-4">
-                    <h3 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4">Featured Items</h3>
-                    <div id="shop-list" class="grid grid-cols-2 gap-3 pb-24">
-                        </div>
-                </div>
-            </section>
-
             <section id="view-admin" class="view-section hidden transition-all duration-300 pt-4">
                 <div class="bg-slate-800 text-white rounded-3xl p-6 shadow-lg mb-6">
                     <h2 class="text-xl font-bold mb-1 flex items-center gap-2"><i data-lucide="shield-alert" class="w-5 h-5"></i>Admin Panel</h2>
@@ -263,11 +244,6 @@
             <button onclick="switchView('contest')" id="nav-contest" class="nav-item flex flex-col items-center gap-1 text-[10px] font-medium transition-all text-slate-400 hover:text-slate-600 dark:hover:text-slate-300">
                 <i data-lucide="trophy" class="w-6 h-6 mb-0.5"></i>
                 <span>Contest</span>
-            </button>
-            
-            <button onclick="switchView('shop')" id="nav-shop" class="nav-item flex flex-col items-center gap-1 text-[10px] font-medium transition-all text-slate-400 hover:text-slate-600 dark:hover:text-slate-300">
-                <i data-lucide="shopping-bag" class="w-6 h-6 mb-0.5"></i>
-                <span>Shop</span>
             </button>
             
             <button onclick="switchView('admin')" id="nav-admin" class="nav-item hidden flex flex-col items-center gap-1 text-[10px] font-medium transition-all text-rose-500 hover:text-rose-600">
@@ -417,7 +393,6 @@
     <script src="social.js"></script>
     <script src="notifications.js"></script>
     <script src="profile.js"></script>
-    <script src="shop.js"></script> 
     <script src="app.js"></script>
     <script src="pomodoro.js"></script>
     <script src="reports.js"></script>
@@ -430,16 +405,14 @@
                 focus: document.getElementById('view-focus'), 
                 reports: document.getElementById('view-reports'),
                 contest: document.getElementById('view-contest'),
-                admin: document.getElementById('view-admin'),
-                shop: document.getElementById('view-shop') 
+                admin: document.getElementById('view-admin') 
             };
             const navs = { 
                 tasks: document.getElementById('nav-tasks'), 
                 focus: document.getElementById('nav-focus'), 
                 reports: document.getElementById('nav-reports'),
                 contest: document.getElementById('nav-contest'),
-                admin: document.getElementById('nav-admin'),
-                shop: document.getElementById('nav-shop')
+                admin: document.getElementById('nav-admin') 
             };
             
             // Hide all views and reset animation
@@ -450,12 +423,15 @@
                 }
             });
             
-            // Reset nav buttons
+            // Reset nav buttons (Check if nav exists first)
             Object.values(navs).forEach(el => { 
                 if(el) {
-                    el.classList.remove('active', 'text-indigo-600', 'dark:text-indigo-400', 'text-cyan-500'); 
+                    el.classList.remove('active', 'text-indigo-600', 'dark:text-indigo-400'); 
                     el.classList.add('text-slate-400', 'hover:text-slate-600', 'dark:hover:text-slate-300'); 
-                    if(el.id === 'nav-admin') el.classList.remove('text-rose-500');
+                    // Admin button has specific red hover style, let's reset it to base slate first
+                    if(el.id === 'nav-admin') {
+                         el.classList.remove('text-rose-500');
+                    }
                 }
             });
             
@@ -471,9 +447,6 @@
                 if(viewName === 'admin') {
                      navs[viewName].classList.add('text-rose-500');
                      navs[viewName].classList.remove('text-slate-400');
-                } else if(viewName === 'shop') {
-                     navs[viewName].classList.add('text-cyan-500');
-                     navs[viewName].classList.remove('text-slate-400');
                 } else {
                     navs[viewName].classList.add('active', 'text-indigo-600', 'dark:text-indigo-400');
                     navs[viewName].classList.remove('text-slate-400', 'hover:text-slate-600', 'dark:hover:text-slate-300');
@@ -484,7 +457,6 @@
             if(viewName === 'contest' && window.loadContestData) window.loadContestData();
             if(viewName === 'reports' && window.initReports) window.initReports();
             if(viewName === 'admin' && window.loadAdminPanel) window.loadAdminPanel();
-            if(viewName === 'shop' && window.initShop) window.initShop();
         }
     </script>
 </body>
