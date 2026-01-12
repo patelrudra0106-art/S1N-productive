@@ -10,7 +10,7 @@ const ASSETS_TO_CACHE = [
   './social.js',
   './notifications.js',
   './profile.js',
-  // External libraries
+  './reports.js',
   'https://cdn.tailwindcss.com',
   'https://unpkg.com/lucide@latest',
   'https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js'
