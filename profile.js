@@ -1,13 +1,13 @@
-/* profile.js */
+/* profile.js - Samsung White Mode */
 
 // --- STATE ---
 let userProfile = JSON.parse(localStorage.getItem('auraProfile')) || {
     name: 'Guest',
-    points: 0,        // Represents "Yearly Points"
-    monthlyPoints: 0, // Represents "Monthly Points"
+    points: 0,        // "Yearly Points"
+    monthlyPoints: 0, // "Monthly Points"
     streak: 0,
     lastTaskDate: null,
-    lastActiveMonth: new Date().toISOString().slice(0, 7) // Format: "YYYY-MM"
+    lastActiveMonth: new Date().toISOString().slice(0, 7) // "YYYY-MM"
 };
 
 // --- CHECK RESET LOGIC (MONTHLY & YEARLY) ---
@@ -17,11 +17,11 @@ let userProfile = JSON.parse(localStorage.getItem('auraProfile')) || {
     const currentYear = now.getFullYear().toString();   // "2026"
 
     const savedMonth = userProfile.lastActiveMonth || "";
-    const savedYear = savedMonth.split('-')[0]; // Extract year from "2025-12"
+    const savedYear = savedMonth.split('-')[0]; 
 
     let hasChanged = false;
 
-    // 1. YEARLY RESET (Global = Full Year)
+    // 1. YEARLY RESET
     if (savedYear && savedYear !== currentYear) {
         userProfile.points = 0;
         hasChanged = true;
@@ -61,6 +61,7 @@ window.addPoints = function(amount, reason) {
     
     if(window.syncUserToDB) window.syncUserToDB(userProfile.points, userProfile.streak, userProfile.monthlyPoints, userProfile.lastActiveMonth);
     
+    // Trigger White Mode Notification
     if(amount > 0 && window.showNotification) window.showNotification(`+${amount} Points!`, reason, 'success');
 };
 
@@ -90,6 +91,7 @@ function saveProfile() {
 }
 
 function updateProfileUI() {
+    // These elements have been updated in index.html to be Slate-900 (Black)
     if(navStreak) navStreak.textContent = userProfile.streak;
     if(pointsDisplay) pointsDisplay.textContent = userProfile.points.toLocaleString();
     if(streakDisplay) streakDisplay.textContent = userProfile.streak;
@@ -168,7 +170,7 @@ window.submitChangePass = async function() {
     }
 };
 
-// --- SHOP LOGIC (NEW) ---
+// --- SHOP LOGIC ---
 window.spendPoints = function(amount) {
     if (userProfile.points < amount) return false;
     
@@ -176,7 +178,6 @@ window.spendPoints = function(amount) {
     saveProfile();
     updateProfileUI();
     
-    // Sync to DB
     if(window.syncUserToDB) window.syncUserToDB(userProfile.points, userProfile.streak, userProfile.monthlyPoints, userProfile.lastActiveMonth);
     
     return true;

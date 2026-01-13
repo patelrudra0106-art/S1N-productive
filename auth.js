@@ -1,4 +1,4 @@
-/* auth.js - Admin & Auth Logic */
+/* auth.js - Samsung White Mode */
 
 // --- STATE ---
 let currentUser = JSON.parse(localStorage.getItem('auraUser')) || null;
@@ -20,16 +20,12 @@ let isLoginMode = true;
 // --- INIT ---
 document.addEventListener('DOMContentLoaded', () => {
     if (currentUser) {
-        // User is logged in
         if (mainApp) mainApp.classList.remove('hidden');
         if (authOverlay) authOverlay.classList.add('hidden');
-        
-        // Initialize Admin Checks & Stats
         checkAdminAccess();
         listenToStats(); 
         listenForBroadcasts(); 
     } else {
-        // User needs to login
         if (authOverlay) authOverlay.classList.remove('hidden');
         if (mainApp) mainApp.classList.add('hidden');
     }
@@ -45,6 +41,7 @@ function listenForBroadcasts() {
             const timeSince = Date.now() - data.timestamp;
             if (timeSince < 10000) { 
                 if (window.showNotification) {
+                    // Broadcast: Simple Info Notification
                     window.showNotification("📢 System Message", data.message, "info");
                 }
             }
@@ -62,7 +59,6 @@ function checkAdminAccess() {
         
         const search = document.getElementById('admin-search');
         if (search) {
-            // Replace to remove old listeners
             const newSearch = search.cloneNode(true);
             search.parentNode.replaceChild(newSearch, search);
             newSearch.addEventListener('input', (e) => loadAdminPanel(e.target.value));
@@ -78,7 +74,8 @@ window.loadAdminPanel = function(filter = '') {
     const list = document.getElementById('admin-user-list');
     if (!list) return;
 
-    list.innerHTML = '<div class="text-center py-8 opacity-50"><i data-lucide="loader-2" class="w-6 h-6 animate-spin mx-auto"></i></div>';
+    // Loader: Black
+    list.innerHTML = '<div class="text-center py-8 opacity-50"><i data-lucide="loader-2" class="w-6 h-6 animate-spin mx-auto text-black"></i></div>';
     if (window.lucide) lucide.createIcons();
 
     firebase.database().ref('users').once('value').then((snapshot) => {
@@ -98,33 +95,33 @@ window.loadAdminPanel = function(filter = '') {
         const currentMonth = new Date().toISOString().slice(0, 7);
         const activeUsers = users.filter(u => u.lastActiveMonth === currentMonth).length;
 
-        // --- FILTERING ---
         if (filter) {
             users = users.filter(u => u.name && u.name.toLowerCase().includes(filter.toLowerCase()));
         }
 
         list.innerHTML = '';
 
-        // --- DASHBOARD UI ---
+        // --- DASHBOARD UI: White Mode ---
+        // Clean White Cards with Slate-200 Borders. No Colors.
         const dashboardHTML = `
             <div class="grid grid-cols-3 gap-2 mb-6 animate-fade-in">
-                <div class="bg-indigo-50 dark:bg-indigo-900/20 p-3 rounded-xl border border-indigo-100 dark:border-indigo-500/20 text-center">
+                <div class="bg-white p-3 rounded-xl border border-slate-200 text-center shadow-sm">
                     <div class="text-[10px] uppercase font-bold text-slate-400">Users</div>
-                    <div class="text-xl font-bold text-indigo-600 dark:text-indigo-400">${totalUsers}</div>
+                    <div class="text-xl font-bold text-slate-900">${totalUsers}</div>
                 </div>
-                <div class="bg-emerald-50 dark:bg-emerald-900/20 p-3 rounded-xl border border-emerald-100 dark:border-emerald-500/20 text-center">
+                <div class="bg-white p-3 rounded-xl border border-slate-200 text-center shadow-sm">
                     <div class="text-[10px] uppercase font-bold text-slate-400">Active</div>
-                    <div class="text-xl font-bold text-emerald-600 dark:text-emerald-400">${activeUsers}</div>
+                    <div class="text-xl font-bold text-slate-900">${activeUsers}</div>
                 </div>
-                <div class="bg-amber-50 dark:bg-amber-900/20 p-3 rounded-xl border border-amber-100 dark:border-amber-500/20 text-center">
+                <div class="bg-white p-3 rounded-xl border border-slate-200 text-center shadow-sm">
                     <div class="text-[10px] uppercase font-bold text-slate-400">Points</div>
-                    <div class="text-xl font-bold text-amber-600 dark:text-amber-400">${totalPoints >= 1000 ? (totalPoints/1000).toFixed(1)+'k' : totalPoints}</div>
+                    <div class="text-xl font-bold text-slate-900">${totalPoints >= 1000 ? (totalPoints/1000).toFixed(1)+'k' : totalPoints}</div>
                 </div>
             </div>
 
             <div class="mb-6 flex gap-2 animate-fade-in">
-                <input type="text" id="admin-broadcast-input" placeholder="Send global alert..." class="flex-1 px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:border-indigo-500">
-                <button onclick="adminSendBroadcast()" class="px-4 py-2 bg-slate-800 dark:bg-slate-700 text-white rounded-xl hover:bg-indigo-600 transition-colors">
+                <input type="text" id="admin-broadcast-input" placeholder="Send global alert..." class="flex-1 px-4 py-2 bg-white border border-slate-200 rounded-xl text-sm outline-none focus:border-slate-400 text-slate-900">
+                <button onclick="adminSendBroadcast()" class="px-4 py-2 bg-slate-900 text-white rounded-xl hover:bg-black transition-colors">
                     <i data-lucide="send" class="w-4 h-4"></i>
                 </button>
             </div>
@@ -144,46 +141,50 @@ window.loadAdminPanel = function(filter = '') {
             const isBanned = user.isBanned === true; 
             const safeName = user.name.replace(/'/g, "\\'"); 
             
+            // Row Style: White BG, Slate Border.
+            // Banned: Opacity lowered, but keeps white background for cleanliness
             const rowClass = isBanned 
-                ? "bg-rose-50 dark:bg-rose-900/10 border-rose-200 dark:border-rose-900/30 opacity-75" 
-                : "bg-white dark:bg-slate-800 border-slate-100 dark:border-slate-700";
+                ? "bg-white border-slate-200 opacity-60" 
+                : "bg-white border-slate-200";
+
+            // Icon: Owner=Black, User=Gray, Banned=Red
+            const iconBg = isAdmin ? 'bg-slate-900 text-white' : (isBanned ? 'bg-white border border-rose-200 text-rose-500' : 'bg-slate-100 text-slate-500');
+            const iconName = isAdmin ? 'shield' : (isBanned ? 'ban' : 'user');
 
             const div = document.createElement('div');
             div.className = `flex items-center justify-between p-4 rounded-2xl border shadow-sm animate-fade-in ${rowClass}`;
             
-            // Password Visibility Logic
-            // Admin can see password, toggle hiding
             div.innerHTML = `
                 <div class="flex items-center gap-4">
-                    <div class="p-2 ${isAdmin ? 'bg-indigo-100 text-indigo-600' : (isBanned ? 'bg-rose-100 text-rose-500' : 'bg-slate-100 dark:bg-slate-700 text-slate-500')} rounded-full">
-                        <i data-lucide="${isAdmin ? 'shield' : (isBanned ? 'ban' : 'user')}" class="w-5 h-5"></i>
+                    <div class="p-2 ${iconBg} rounded-full">
+                        <i data-lucide="${iconName}" class="w-5 h-5"></i>
                     </div>
                     <div>
-                        <p class="text-sm font-bold ${isBanned ? 'text-rose-600 dark:text-rose-400 line-through' : 'text-slate-700 dark:text-slate-200'}">${user.name} ${isBanned ? '<span class="text-[10px] no-line-through bg-rose-500 text-white px-1 rounded ml-1">BANNED</span>' : ''}</p>
+                        <p class="text-sm font-bold ${isBanned ? 'text-rose-500 line-through' : 'text-slate-900'}">${user.name} ${isBanned ? '<span class="text-[10px] no-line-through font-bold text-rose-500 ml-1">BANNED</span>' : ''}</p>
                         <p class="text-[10px] text-slate-400">Points: ${user.points || 0}</p>
                         
                         <div class="flex items-center gap-2 mt-0.5">
                             <p id="pass-${safeName}" class="text-[10px] text-slate-400 font-mono">••••••</p>
-                            <button onclick="togglePassVisibility('${safeName}', '${user.password}')" class="text-slate-300 hover:text-indigo-500"><i data-lucide="eye" class="w-3 h-3"></i></button>
+                            <button onclick="togglePassVisibility('${safeName}', '${user.password}')" class="text-slate-300 hover:text-black"><i data-lucide="eye" class="w-3 h-3"></i></button>
                         </div>
                     </div>
                 </div>
                 ${!isAdmin ? `
                 <div class="flex gap-1">
-                    <button onclick="adminResetPass('${safeName}')" class="p-2 text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors" title="Reset Password">
+                    <button onclick="adminResetPass('${safeName}')" class="p-2 text-slate-400 hover:bg-slate-100 rounded-lg transition-colors" title="Reset Password">
                         <i data-lucide="key" class="w-4 h-4"></i>
                     </button>
-                    <button onclick="adminEditPoints('${safeName}', ${user.points || 0})" class="p-2 text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-lg transition-colors" title="Edit Points">
+                    <button onclick="adminEditPoints('${safeName}', ${user.points || 0})" class="p-2 text-slate-400 hover:bg-slate-100 rounded-lg transition-colors" title="Edit Points">
                         <i data-lucide="pencil" class="w-4 h-4"></i>
                     </button>
-                    <button onclick="adminToggleBan('${safeName}', ${isBanned})" class="p-2 ${isBanned ? 'text-emerald-500 bg-emerald-50' : 'text-orange-400 hover:bg-orange-50'} rounded-lg transition-colors" title="${isBanned ? 'Unban' : 'Ban'} User">
+                    <button onclick="adminToggleBan('${safeName}', ${isBanned})" class="p-2 ${isBanned ? 'text-emerald-600 bg-emerald-50' : 'text-slate-400 hover:bg-slate-100'} rounded-lg transition-colors" title="${isBanned ? 'Unban' : 'Ban'} User">
                         <i data-lucide="${isBanned ? 'check-circle' : 'ban'}" class="w-4 h-4"></i>
                     </button>
-                    <button onclick="adminDeleteUser('${safeName}')" class="p-2 text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-lg transition-colors" title="Delete User">
+                    <button onclick="adminDeleteUser('${safeName}')" class="p-2 text-slate-300 hover:text-rose-500 hover:bg-white rounded-lg transition-colors" title="Delete User">
                         <i data-lucide="trash-2" class="w-4 h-4"></i>
                     </button>
                 </div>
-                ` : '<span class="text-[10px] font-bold text-indigo-500 uppercase tracking-wider">Owner</span>'}
+                ` : '<span class="text-[10px] font-bold text-slate-900 uppercase tracking-wider">Owner</span>'}
             `;
             list.appendChild(div);
         });
@@ -213,10 +214,10 @@ window.togglePassVisibility = function(elementId, password) {
     if (el) {
         if (el.textContent === '••••••') {
             el.textContent = password;
-            el.classList.add('text-indigo-500');
+            el.classList.add('text-black', 'font-bold');
         } else {
             el.textContent = '••••••';
-            el.classList.remove('text-indigo-500');
+            el.classList.remove('text-black', 'font-bold');
         }
     }
 };
@@ -290,17 +291,17 @@ window.toggleAuthMode = function() {
     if (isLoginMode) {
         authTitle.textContent = "Welcome to Aura";
         authSubmitBtn.textContent = "Log In";
-        toggleAuthText.innerHTML = "New here? <span class='text-indigo-600 font-bold cursor-pointer hover:underline' onclick='toggleAuthMode()'>Create Account</span>";
+        toggleAuthText.innerHTML = "New here? <span class='text-slate-900 font-bold cursor-pointer hover:underline' onclick='toggleAuthMode()'>Create Account</span>";
         confirmPassField.classList.add('hidden');
     } else {
         authTitle.textContent = "Join Contest";
         authSubmitBtn.textContent = "Sign Up";
-        toggleAuthText.innerHTML = "Have an account? <span class='text-indigo-600 font-bold cursor-pointer hover:underline' onclick='toggleAuthMode()'>Log In</span>";
+        toggleAuthText.innerHTML = "Have an account? <span class='text-slate-900 font-bold cursor-pointer hover:underline' onclick='toggleAuthMode()'>Log In</span>";
         confirmPassField.classList.remove('hidden');
     }
 };
 
-// --- HANDLE SUBMIT (CLOUD) ---
+// --- HANDLE SUBMIT ---
 window.handleAuth = async function(e) {
     e.preventDefault();
     
@@ -312,7 +313,7 @@ window.handleAuth = async function(e) {
     if (name.toLowerCase() === 'undefined' || name.toLowerCase() === 'null') return alert("Invalid username.");
 
     authSubmitBtn.disabled = true;
-    authSubmitBtn.innerHTML = '<i data-lucide="loader-2" class="w-5 h-5 animate-spin mx-auto"></i>';
+    authSubmitBtn.innerHTML = '<i data-lucide="loader-2" class="w-5 h-5 animate-spin mx-auto text-white"></i>';
     if(window.lucide) lucide.createIcons();
 
     const userRef = firebase.database().ref('users/' + name);
