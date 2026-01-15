@@ -1,4 +1,4 @@
-/* profile.js - Updated with Badge Display */
+/* profile.js - S1N Industrial Theme Update */
 
 // --- STATE ---
 let userProfile = JSON.parse(localStorage.getItem('auraProfile')) || {
@@ -10,24 +10,15 @@ let userProfile = JSON.parse(localStorage.getItem('auraProfile')) || {
     lastActiveMonth: new Date().toISOString().slice(0, 7) 
 };
 
-// --- CHECK RESET LOGIC (MONTHLY & YEARLY) ---
+// --- CHECK RESET LOGIC (MONTHLY ONLY) ---
 (function checkTimeResets() {
     const now = new Date();
     const currentMonth = now.toISOString().slice(0, 7); 
-    const currentYear = now.getFullYear().toString();   
 
     const savedMonth = userProfile.lastActiveMonth || "";
-    const savedYear = savedMonth.split('-')[0]; 
-
     let hasChanged = false;
 
-    // 1. YEARLY RESET 
-    if (savedYear && savedYear !== currentYear) {
-        userProfile.points = 0;
-        hasChanged = true;
-    }
-
-    // 2. MONTHLY RESET
+    // Monthly Reset (For League)
     if (savedMonth !== currentMonth) {
         userProfile.monthlyPoints = 0;
         userProfile.lastActiveMonth = currentMonth;
@@ -59,9 +50,11 @@ window.addPoints = function(amount, reason) {
     saveProfile();
     updateProfileUI();
     
+    // Sync to Cloud
     if(window.syncUserToDB) window.syncUserToDB(userProfile.points, userProfile.streak, userProfile.monthlyPoints, userProfile.lastActiveMonth);
     
-    if(amount > 0 && window.showNotification) window.showNotification(`+${amount} Points!`, reason, 'success');
+    // Notification
+    if(amount > 0 && window.showNotification) window.showNotification(`CREDITS +${amount}`, reason, 'success');
 };
 
 window.updateStreak = function() {
@@ -99,53 +92,51 @@ function updateProfileUI() {
     renderProfileBadges();
 }
 
-// --- BADGE RENDERING (NEW) ---
+// --- BADGE RENDERING (S1N Style) ---
 function renderProfileBadges() {
     const user = JSON.parse(localStorage.getItem('auraUser'));
     const inventory = (user && user.inventory) ? user.inventory : [];
     
-    // Find or create badge container in modal
     const modalContent = document.querySelector('#account-modal > div');
     if (!modalContent) return;
 
     let badgeContainer = document.getElementById('profile-badges');
     
-    // If user has no badges, hide container if it exists
     if (inventory.length === 0) {
         if(badgeContainer) badgeContainer.innerHTML = '';
         return;
     }
 
-    // Create container if it doesn't exist
     if (!badgeContainer) {
         badgeContainer = document.createElement('div');
         badgeContainer.id = 'profile-badges';
-        badgeContainer.className = "flex flex-wrap gap-2 justify-center mb-6 animate-fade-in";
-        // Insert after the stats row (points/streak) which is the 2nd child usually
-        // We insert it before the "Current User" name box
-        const nameBox = document.querySelector('#account-modal .bg-slate-50.rounded-2xl.mb-4');
+        badgeContainer.className = "flex flex-wrap gap-2 justify-center mb-6 pt-4 border-t border-border";
+        
+        // Insert before the name box
+        const nameBox = document.querySelector('#account-modal .bg-input.rounded-xl.mb-4');
         if (nameBox) {
             nameBox.parentNode.insertBefore(badgeContainer, nameBox);
         }
     }
 
-    // Map IDs to Visuals (Simple Lookup to avoid dependency issues)
-    const badgeLookups = {
-        'badge_crown': { icon: 'crown', color: 'bg-amber-100 text-amber-600' },
-        'badge_star': { icon: 'star', color: 'bg-purple-100 text-purple-600' },
-        'badge_fire': { icon: 'flame', color: 'bg-orange-100 text-orange-600' },
-        'badge_zap': { icon: 'zap', color: 'bg-indigo-100 text-indigo-600' },
-        'theme_emerald': { icon: 'leaf', color: 'bg-emerald-100 text-emerald-600' }
+    // Icon Lookup
+    const badgeMap = {
+        'badge_crown': 'crown', 
+        'badge_star': 'star', 
+        'badge_fire': 'flame', 
+        'badge_zap': 'zap', 
+        'theme_emerald': 'leaf'
     };
 
     badgeContainer.innerHTML = '';
     inventory.forEach(itemId => {
-        const visual = badgeLookups[itemId] || { icon: 'award', color: 'bg-slate-100 text-slate-500' };
+        const icon = badgeMap[itemId] || 'award';
         
         const badge = document.createElement('div');
-        badge.className = `p-2 rounded-lg ${visual.color} shadow-sm`;
+        // Industrial Badge: Bordered, no background
+        badge.className = `p-2 rounded-md border border-border text-muted hover:text-main hover:border-main transition-colors cursor-help`;
         badge.title = itemId;
-        badge.innerHTML = `<i data-lucide="${visual.icon}" class="w-5 h-5"></i>`;
+        badge.innerHTML = `<i data-lucide="${icon}" class="w-5 h-5"></i>`;
         badgeContainer.appendChild(badge);
     });
 
@@ -188,11 +179,11 @@ window.submitChangePass = async function() {
     const oldPass = oldPassInput.value;
     const newPass = newPassInput.value;
     
-    if(!oldPass || !newPass) return alert("Please fill in both fields.");
-    if(newPass.length < 4) return alert("New password is too short.");
+    if(!oldPass || !newPass) return alert("All fields required.");
+    if(newPass.length < 4) return alert("Password too short.");
     
     const user = JSON.parse(localStorage.getItem('auraUser'));
-    if(!user) return alert("You must be logged in.");
+    if(!user) return alert("Authentication error.");
 
     const originalText = btn.textContent;
     btn.textContent = "Updating...";
@@ -203,7 +194,7 @@ window.submitChangePass = async function() {
         const dbUser = snapshot.val();
         
         if (!dbUser || dbUser.password !== oldPass) {
-            throw new Error("Current password is incorrect.");
+            throw new Error("Incorrect current password.");
         }
 
         await firebase.database().ref('users/' + user.name).update({
@@ -213,7 +204,7 @@ window.submitChangePass = async function() {
         user.password = newPass;
         localStorage.setItem('auraUser', JSON.stringify(user));
 
-        alert("Password updated successfully!");
+        alert("Credentials Updated.");
         window.toggleChangePass(); 
         
     } catch (error) {

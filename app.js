@@ -1,4 +1,4 @@
-/* app.js - Task Logic */
+/* app.js - S1N Industrial Theme Update */
 
 // --- DOM ELEMENTS ---
 const taskInput = document.getElementById('task-input');
@@ -35,11 +35,12 @@ function setupEventListeners() {
     // Filters
     filterBtns.forEach(btn => {
         btn.addEventListener('click', () => {
-            // Update active class
+            // Reset all buttons to default style
             filterBtns.forEach(b => {
-                b.className = "filter-btn px-4 py-2 rounded-xl text-sm font-medium text-slate-500 hover:bg-white dark:hover:bg-slate-800 transition-all";
+                b.className = "filter-btn text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full border border-transparent text-muted hover:text-main transition-colors";
             });
-            btn.className = "filter-btn active px-4 py-2 rounded-xl text-sm font-medium bg-white dark:bg-slate-800 shadow-sm text-indigo-600 dark:text-indigo-400 transition-all";
+            // Set active button style (Solid Black/White)
+            btn.className = "filter-btn active text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full border border-main bg-main text-body transition-colors";
             
             currentFilter = btn.dataset.filter;
             renderTasks();
@@ -92,7 +93,7 @@ function addTask() {
     renderTasks();
     
     // Notification
-    if(window.showNotification) window.showNotification("Task Added", "Let's get this done!", "info");
+    if(window.showNotification) window.showNotification("Protocol Initiated", "Task added to queue.", "info");
 }
 
 function toggleTask(id) {
@@ -106,21 +107,22 @@ function toggleTask(id) {
         if (tasks[taskIndex].completed) {
             tasks[taskIndex].completedAt = Date.now();
             
-            // Audio Feedback
-            const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/1111/1111-preview.mp3'); 
-            audio.volume = 0.3;
+            // Audio Feedback (Subtle Click)
+            const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2578/2578-preview.mp3'); 
+            audio.volume = 0.2;
             audio.play().catch(()=>{});
 
-            // Confetti
+            // Confetti (Clean bursts)
             if(window.confetti) {
                 const rect = document.getElementById(`task-${id}`).getBoundingClientRect();
                 const x = rect.left / window.innerWidth + (rect.width / window.innerWidth) / 2;
                 const y = rect.top / window.innerHeight;
-                confetti({ particleCount: 60, spread: 50, origin: { x, y }, colors: ['#6366f1', '#a855f7'] });
+                // Monochrome Confetti
+                confetti({ particleCount: 40, spread: 40, origin: { x, y }, colors: ['#000000', '#FFFFFF', '#9CA3AF'] });
             }
 
             // Award Points (Linked to Profile.js)
-            if(window.addPoints) window.addPoints(10, "Task Completed");
+            if(window.addPoints) window.addPoints(10, "Task Complete");
             if(window.updateStreak) window.updateStreak();
 
         } else {
@@ -133,7 +135,7 @@ function toggleTask(id) {
 }
 
 function deleteTask(id) {
-    if(confirm("Delete this task?")) {
+    if(confirm("Terminate this task protocol?")) {
         let tasks = JSON.parse(localStorage.getItem(getStorageKey())) || [];
         tasks = tasks.filter(t => t.id !== id);
         saveTasks(tasks);
@@ -161,9 +163,9 @@ function renderTasks() {
             const dateObj = new Date(task.date);
             const today = new Date();
             const isToday = dateObj.toDateString() === today.toDateString();
-            dateDisplay = isToday ? 'Today' : dateObj.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+            dateDisplay = isToday ? 'TODAY' : dateObj.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }).toUpperCase();
             
-            if (task.time) dateDisplay += `, ${task.time}`;
+            if (task.time) dateDisplay += ` • ${task.time}`;
         }
 
         // Check for Overdue
@@ -175,35 +177,35 @@ function renderTasks() {
 
         const li = document.createElement('li');
         li.id = `task-${task.id}`;
-        li.className = `group bg-white dark:bg-slate-800 p-4 rounded-2xl border transition-all duration-300 animate-slide-in ${task.completed ? 'border-emerald-100 dark:border-emerald-900/30 opacity-60' : 'border-slate-100 dark:border-slate-700 hover:border-indigo-200 dark:hover:border-indigo-800'}`;
+        
+        // Style: Clean Card, no colors, just opacity change for completed
+        li.className = `card-s1n group p-4 flex items-center gap-4 transition-all duration-300 animate-slide-in ${task.completed ? 'opacity-50 grayscale' : 'hover:border-main'}`;
         
         li.innerHTML = `
-            <div class="flex items-center gap-4">
-                <button onclick="toggleTask(${task.id})" class="w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${task.completed ? 'bg-emerald-500 border-emerald-500' : 'border-slate-300 dark:border-slate-600 hover:border-indigo-500'}">
-                    ${task.completed ? '<i data-lucide="check" class="w-3.5 h-3.5 text-white"></i>' : ''}
-                </button>
-                
-                <div class="flex-1 min-w-0 cursor-pointer" onclick="toggleTask(${task.id})">
-                    <p class="text-sm font-medium transition-all truncate ${task.completed ? 'text-slate-400 line-through' : 'text-slate-700 dark:text-slate-200'}">
-                        ${task.text}
+            <button onclick="toggleTask(${task.id})" class="flex-shrink-0 w-5 h-5 border border-main rounded-sm flex items-center justify-center transition-all ${task.completed ? 'bg-main text-body' : 'bg-transparent hover:bg-input'}">
+                ${task.completed ? '<i data-lucide="check" class="w-3 h-3"></i>' : ''}
+            </button>
+            
+            <div class="flex-1 min-w-0 cursor-pointer" onclick="toggleTask(${task.id})">
+                <p class="text-sm font-bold truncate leading-tight transition-all ${task.completed ? 'line-through text-muted' : 'text-main'}">
+                    ${task.text}
+                </p>
+                ${dateDisplay ? `
+                    <p class="text-[10px] font-bold mt-1 tracking-wider uppercase ${isOverdue && !task.completed ? 'text-rose-500' : 'text-muted'}">
+                        ${dateDisplay} ${isOverdue ? '(!)' : ''}
                     </p>
-                    ${dateDisplay ? `
-                        <p class="text-[10px] mt-0.5 flex items-center gap-1 ${isOverdue ? 'text-rose-500 font-bold' : 'text-slate-400'}">
-                            <i data-lucide="calendar" class="w-3 h-3"></i> ${dateDisplay} ${isOverdue ? '(Overdue)' : ''}
-                        </p>
-                    ` : ''}
-                </div>
+                ` : ''}
+            </div>
 
-                <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                    ${!task.completed ? `
-                    <button onclick="window.setFocusTask && window.setFocusTask('${task.text.replace(/'/g, "\\'")}')" class="p-2 text-slate-400 hover:text-indigo-500 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-lg transition-colors" title="Focus on this">
-                        <i data-lucide="crosshair" class="w-4 h-4"></i>
-                    </button>
-                    ` : ''}
-                    <button onclick="deleteTask(${task.id})" class="p-2 text-slate-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-lg transition-colors">
-                        <i data-lucide="trash-2" class="w-4 h-4"></i>
-                    </button>
-                </div>
+            <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                ${!task.completed ? `
+                <button onclick="window.setFocusTask && window.setFocusTask('${task.text.replace(/'/g, "\\'")}')" class="p-2 text-muted hover:text-main hover:bg-input rounded-md transition-colors" title="Focus">
+                    <i data-lucide="crosshair" class="w-4 h-4"></i>
+                </button>
+                ` : ''}
+                <button onclick="deleteTask(${task.id})" class="p-2 text-muted hover:text-rose-500 hover:bg-input rounded-md transition-colors">
+                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                </button>
             </div>
         `;
         taskList.appendChild(li);
@@ -214,7 +216,6 @@ function renderTasks() {
 }
 
 function checkEmptyState(count) {
-    // If count is passed, use it. Otherwise calculate based on list children.
     const hasItems = count !== undefined ? count > 0 : taskList.children.length > 0;
     
     if (hasItems) {
@@ -222,18 +223,18 @@ function checkEmptyState(count) {
     } else {
         emptyState.classList.remove('hidden');
         const msg = emptyState.querySelector('p');
-        if(currentFilter === 'completed') msg.textContent = "No completed tasks yet.";
-        else if(currentFilter === 'active') msg.textContent = "No active tasks. Good job!";
-        else msg.textContent = "No tasks here. Relax or add one!";
+        if(currentFilter === 'completed') msg.textContent = "No completed protocols.";
+        else if(currentFilter === 'active') msg.textContent = "All systems operational.";
+        else msg.textContent = "System Idle. Add Protocol.";
     }
 }
-/* Theme Logic */
+
+// Theme Toggle Logic (Simple Class Toggle)
 window.setTheme = function(mode) {
     const html = document.documentElement;
     const btnLight = document.getElementById('theme-btn-light');
     const btnDark = document.getElementById('theme-btn-dark');
 
-    // 1. Apply Class & Save
     if (mode === 'dark') {
         html.classList.add('dark');
         localStorage.setItem('auraTheme', 'dark');
@@ -242,27 +243,28 @@ window.setTheme = function(mode) {
         localStorage.setItem('auraTheme', 'light');
     }
 
-    // 2. Update Button UI (Visual Feedback)
-    const activeClass = "flex-1 py-2 rounded-lg text-sm font-medium transition-all flex items-center justify-center gap-2 bg-white dark:bg-slate-600 text-indigo-600 dark:text-indigo-400 shadow-sm ring-1 ring-black/5";
-    const inactiveClass = "flex-1 py-2 rounded-lg text-sm font-medium transition-all flex items-center justify-center gap-2 text-slate-500 hover:text-slate-700 dark:hover:text-slate-300";
-
+    // Update Buttons (Bold the active one)
     if (btnLight && btnDark) {
         if (mode === 'dark') {
-            btnDark.className = activeClass;
-            btnLight.className = inactiveClass;
+            btnDark.classList.add('bg-main', 'text-body', 'border-main');
+            btnDark.classList.remove('text-muted', 'border-transparent');
+            
+            btnLight.classList.remove('bg-main', 'text-body', 'border-main');
+            btnLight.classList.add('text-muted', 'border-transparent');
         } else {
-            btnLight.className = activeClass;
-            btnDark.className = inactiveClass;
+            btnLight.classList.add('bg-main', 'text-body', 'border-main');
+            btnLight.classList.remove('text-muted', 'border-transparent');
+            
+            btnDark.classList.remove('bg-main', 'text-body', 'border-main');
+            btnDark.classList.add('text-muted', 'border-transparent');
         }
     }
 };
 
-// Initialize Button State on Load
+// Init Theme Buttons on Load
 document.addEventListener('DOMContentLoaded', () => {
     const currentTheme = localStorage.getItem('auraTheme') === 'dark' || 
         (!('auraTheme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches) 
         ? 'dark' : 'light';
-    
-    // Update the buttons visually without re-triggering the logic
     window.setTheme(currentTheme);
 });

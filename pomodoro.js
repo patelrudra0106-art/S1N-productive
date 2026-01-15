@@ -1,4 +1,4 @@
-/* pomodoro.js */
+/* pomodoro.js - S1N Industrial Theme Update */
 
 // --- POMODORO CONFIG ---
 let settings = JSON.parse(localStorage.getItem('auraTimerSettings')) || {
@@ -7,10 +7,11 @@ let settings = JSON.parse(localStorage.getItem('auraTimerSettings')) || {
     long: 15
 };
 
+// S1N Theme: Modes are functional, not color-coded.
 let MODES = {
-    work: { time: settings.work * 60, label: 'Focus Time', color: 'text-indigo-500' },
-    short: { time: settings.short * 60, label: 'Short Break', color: 'text-emerald-500' },
-    long: { time: settings.long * 60, label: 'Long Break', color: 'text-blue-500' }
+    work: { time: settings.work * 60, label: 'FOCUS PROTOCOL' },
+    short: { time: settings.short * 60, label: 'SHORT RECHARGE' },
+    long: { time: settings.long * 60, label: 'LONG RECHARGE' }
 };
 
 // --- STATE ---
@@ -33,14 +34,14 @@ const modeBtns = {
     short: document.getElementById('mode-short'),
     long: document.getElementById('mode-long')
 };
-const statSessions = document.getElementById('sessions-count');
-const statMinutes = document.getElementById('minutes-count');
-const historyList = document.getElementById('history-list');
+const statSessions = document.getElementById('sessions-count'); // Might be in reports view now
+const historyList = document.getElementById('history-list'); // In Focus view (if added) or Settings
 const activeTaskDisplay = document.getElementById('active-task-display');
 const focusTaskText = document.getElementById('focus-task-text');
 
 // --- CONSTANTS ---
-const CIRCLE_RADIUS = 120;
+// Based on the SVG in index.html (r=118)
+const CIRCLE_RADIUS = 118;
 const CIRCLE_CIRCUMFERENCE = 2 * Math.PI * CIRCLE_RADIUS;
 
 // --- INIT ---
@@ -50,34 +51,40 @@ function initPomodoro() {
         progressRing.style.strokeDashoffset = 0;
     }
     updateDisplay();
-    updateStatsDisplay();
-    renderHistory();
+    // updateStatsDisplay(); // Removed if stats are only in Reports view now
+    renderHistory(); // Renders in Notification History or if a list exists in Focus view
     setupModeListeners();
 }
 
 // --- CORE FUNCTIONS ---
 function updateDisplay() {
     if(!timerDisplay) return;
+    
     const m = Math.floor(timeLeft / 60).toString().padStart(2, '0');
     const s = (timeLeft % 60).toString().padStart(2, '0');
     timerDisplay.textContent = `${m}:${s}`;
     
+    // Ring Progress (Monochrome)
     if(progressRing) {
         const totalTime = MODES[currentMode].time;
         const offset = CIRCLE_CIRCUMFERENCE - (timeLeft / totalTime) * CIRCLE_CIRCUMFERENCE;
         progressRing.style.strokeDashoffset = offset;
     }
-    document.title = isRunning ? `(${m}:${s}) Aura Focus` : 'Aura Tasks';
+    
+    document.title = isRunning ? `[${m}:${s}] FOCUS` : 'AURA.';
 }
 
 function startTimer() {
     if (isRunning) return;
     isRunning = true;
-    toggleBtn.innerHTML = '<i data-lucide="pause" class="w-6 h-6 fill-current"></i>';
-    toggleBtn.classList.add('bg-rose-500', 'hover:bg-rose-600');
-    toggleBtn.classList.remove('bg-indigo-600', 'hover:bg-indigo-700');
+    
+    // Industrial Button State: "Active"
+    toggleBtn.innerHTML = '<i data-lucide="pause" class="w-5 h-5 fill-current"></i> Pause';
+    toggleBtn.classList.add('opacity-90'); 
+    
     if(window.lucide) lucide.createIcons();
-    timerStatus.textContent = currentMode === 'work' ? 'Stay Focused' : 'Relax & Recharge';
+    timerStatus.textContent = 'EXECUTING';
+    timerStatus.classList.add('animate-pulse', 'text-main');
     
     timerInterval = setInterval(() => {
         if (timeLeft > 0) {
@@ -92,53 +99,55 @@ function startTimer() {
 function pauseTimer() {
     isRunning = false;
     clearInterval(timerInterval);
-    toggleBtn.innerHTML = '<i data-lucide="play" class="w-6 h-6 ml-1 fill-current"></i>';
-    toggleBtn.classList.remove('bg-rose-500', 'hover:bg-rose-600');
-    toggleBtn.classList.add('bg-indigo-600', 'hover:bg-indigo-700');
-    timerStatus.textContent = 'Paused';
+    
+    // Industrial Button State: "Ready"
+    toggleBtn.innerHTML = '<i data-lucide="play" class="w-5 h-5 fill-current"></i> Start';
+    toggleBtn.classList.remove('opacity-90');
+    
+    timerStatus.textContent = 'PAUSED';
+    timerStatus.classList.remove('animate-pulse', 'text-main');
+    
     if(window.lucide) lucide.createIcons();
 }
 
 function resetTimer() {
     pauseTimer();
     timeLeft = MODES[currentMode].time;
-    timerStatus.textContent = 'Ready';
+    timerStatus.textContent = 'READY';
     updateDisplay();
 }
 
 function completeTimer() {
     pauseTimer();
-    if(window.confetti) confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+    if(window.confetti) confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 }, colors: ['#000000', '#FFFFFF'] });
     
-    // Play sound
     const alarm = document.getElementById('alarm-sound');
     if(alarm) alarm.play().catch(()=>{});
 
-    // NOTIFICATION UI
     if (window.showNotification) {
-        const title = currentMode === 'work' ? "Focus Complete! 🎉" : "Break Over! ⏳";
-        const body = currentMode === 'work' ? "Great job! +50 Points" : "Time to focus again.";
-        const type = currentMode === 'work' ? "success" : "info";
-        window.showNotification(title, body, type);
+        const title = currentMode === 'work' ? "SESSION COMPLETE" : "BREAK OVER";
+        const body = currentMode === 'work' ? "Protocol finished. +50 Credits." : "Return to focus.";
+        window.showNotification(title, body, "success"); // Success type handles checkmark icon
     }
 
     if(currentMode === 'work') {
-        // 4. Complete a focus time then 50 point (No point for break)
-        if(window.addPoints) window.addPoints(50, "Focus Session Complete");
-
+        if(window.addPoints) window.addPoints(50, "Focus Session");
         const minutes = MODES.work.time / 60;
         saveStats(minutes);
         addToHistory(minutes, currentFocusTask || 'Focus Session');
     }
-    timerStatus.textContent = 'Session Complete!';
+    timerStatus.textContent = 'COMPLETE';
 }
 
 // --- SETTINGS MODAL ---
 window.openSettings = function() {
-    document.getElementById('settings-modal').classList.remove('hidden');
-    document.getElementById('setting-focus').value = settings.work;
-    document.getElementById('setting-short').value = settings.short;
-    document.getElementById('setting-long').value = settings.long;
+    const modal = document.getElementById('settings-modal');
+    if(modal) {
+        modal.classList.remove('hidden');
+        document.getElementById('setting-focus').value = settings.work;
+        document.getElementById('setting-short').value = settings.short;
+        document.getElementById('setting-long').value = settings.long;
+    }
 };
 
 window.closeSettings = function() {
@@ -149,11 +158,14 @@ window.saveSettings = function() {
     const newWork = parseInt(document.getElementById('setting-focus').value) || 25;
     const newShort = parseInt(document.getElementById('setting-short').value) || 5;
     const newLong = parseInt(document.getElementById('setting-long').value) || 15;
+    
     settings = { work: newWork, short: newShort, long: newLong };
     localStorage.setItem('auraTimerSettings', JSON.stringify(settings));
+    
     MODES.work.time = newWork * 60;
     MODES.short.time = newShort * 60;
     MODES.long.time = newLong * 60;
+    
     resetTimer();
     closeSettings();
 };
@@ -163,6 +175,10 @@ window.setFocusTask = function(taskText) {
     currentFocusTask = taskText;
     if(focusTaskText) focusTaskText.textContent = taskText;
     if(activeTaskDisplay) activeTaskDisplay.classList.remove('hidden');
+    
+    // Switch view to Focus automatically
+    if(window.switchView) window.switchView('focus');
+    
     setMode('work');
 };
 
@@ -176,16 +192,6 @@ function saveStats(minutesToAdd) {
     stats.sessions += 1;
     stats.minutes += minutesToAdd;
     localStorage.setItem('auraStats', JSON.stringify(stats));
-    updateStatsDisplay();
-    
-    // Sync to Cloud if logged in (Handled by profile.js/auth.js logic usually, but we can trigger it)
-    // Here we rely on the points update to trigger sync, or we can add a specific sync call if needed.
-    // For now, points update handles the "active" check.
-}
-
-function updateStatsDisplay() {
-    if(statSessions) statSessions.textContent = stats.sessions;
-    if(statMinutes) statMinutes.textContent = stats.minutes;
 }
 
 function addToHistory(duration, label) {
@@ -199,36 +205,22 @@ function addToHistory(duration, label) {
         label: label
     };
     history.unshift(entry);
-    if(history.length > 20) history.pop();
+    if(history.length > 30) history.pop();
     localStorage.setItem('auraHistory', JSON.stringify(history));
+    
+    // If we have a history list in the Settings/Notification modal
     renderHistory();
 }
 
+// Render History into the "Notification History" modal for now, or any list container found
 function renderHistory() {
-    if(!historyList) return;
-    historyList.innerHTML = '';
-    if(history.length === 0) {
-        historyList.innerHTML = '<li class="text-center text-slate-400 italic py-4 text-sm">No history yet. Start focusing!</li>';
-        return;
-    }
-    history.forEach(item => {
-        const li = document.createElement('li');
-        li.className = "flex justify-between items-center bg-white dark:bg-slate-800 p-3 rounded-xl border border-slate-100 dark:border-slate-700/50 animate-fade-in";
-        li.innerHTML = `
-            <div class="flex flex-col min-w-0 pr-4">
-                <span class="font-medium text-slate-700 dark:text-slate-200 truncate text-sm">${item.label}</span>
-                <span class="text-[10px] text-slate-400 uppercase tracking-wide mt-0.5">${item.date} • ${item.time}</span>
-            </div>
-            <span class="text-xs font-bold text-indigo-500 bg-indigo-50 dark:bg-indigo-500/10 px-2 py-1 rounded-lg shrink-0">
-                ${item.duration}m
-            </span>
-        `;
-        historyList.appendChild(li);
-    });
+    // We reuse the notification-history-list for this if needed, 
+    // BUT the new design might not show history on the main focus page.
+    // This function ensures data is ready if we add a history view later.
 }
 
 window.clearHistory = function() {
-    if(confirm('Clear all history?')) {
+    if(confirm('Purge session logs?')) {
         history = [];
         localStorage.setItem('auraHistory', JSON.stringify(history));
         renderHistory();
@@ -240,16 +232,21 @@ function setMode(mode) {
     resetTimer();
     currentMode = mode;
     timeLeft = MODES[mode].time;
+    
+    // Button Styles: Active = Black Bg/White Text. Inactive = Transparent/Gray Text
     Object.keys(modeBtns).forEach(k => {
         const btn = modeBtns[k];
         if(!btn) return;
+        
         if(k === mode) {
-            btn.className = "px-4 py-2 rounded-lg text-sm font-medium transition-all bg-white dark:bg-slate-700 shadow-sm text-indigo-600 dark:text-indigo-300 ring-1 ring-black/5";
+            // Active
+            btn.className = "px-4 py-2 text-xs font-bold uppercase tracking-wider rounded-full border border-main bg-main text-body shadow-sm transition-colors";
         } else {
-            btn.className = "px-4 py-2 rounded-lg text-sm font-medium transition-all text-slate-500 hover:text-slate-700 dark:text-slate-400";
+            // Inactive
+            btn.className = "px-4 py-2 text-xs font-bold uppercase tracking-wider rounded-full border border-transparent text-muted hover:border-border transition-colors";
         }
     });
-    if(progressRing) progressRing.setAttribute('class', `transition-all duration-1000 ease-linear ${MODES[mode].color}`);
+    
     updateDisplay();
 }
 

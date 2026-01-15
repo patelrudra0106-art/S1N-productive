@@ -2,9 +2,10 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aura Tasks & Focus</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Aura | Industrial Focus</title>
     <link rel="manifest" href="manifest.json">
+    
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -12,381 +13,342 @@
             theme: {
                 extend: {
                     fontFamily: { sans: ['Inter', 'sans-serif'] },
-                    animation: { 
-                        'fade-in': 'fadeIn 0.4s ease-out forwards',
-                        'slide-in': 'slideIn 0.3s ease-out forwards',
-                        'slide-out': 'slideOut 0.3s ease-in forwards',
-                        'pop': 'pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards',
-                        'slide-in-top': 'slideInTop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards'
+                    colors: {
+                        // Mapping CSS Variables to Tailwind
+                        body: 'var(--bg-body)',
+                        card: 'var(--bg-card)',
+                        input: 'var(--bg-input)',
+                        main: 'var(--text-main)',
+                        muted: 'var(--text-muted)',
+                        border: 'var(--border-light)',
+                        borderDark: 'var(--border-dark)',
                     },
-                    keyframes: { 
-                        fadeIn: { '0%': { opacity: '0', transform: 'translateY(10px)' }, '100%': { opacity: '1', transform: 'translateY(0)' } },
-                        slideIn: { '0%': { opacity: '0', transform: 'translateX(-20px)' }, '100%': { opacity: '1', transform: 'translateX(0)' } },
-                        slideOut: { '0%': { opacity: '1', transform: 'translateX(0)' }, '100%': { opacity: '0', transform: 'translateX(100%)' } },
-                        pop: { '0%': { opacity: '0', transform: 'scale(0.5)' }, '100%': { opacity: '1', transform: 'scale(1)' } },
-                        slideInTop: { '0%': { opacity: '0', transform: 'translateY(-50px)' }, '100%': { opacity: '1', transform: 'translateY(0)' } }
+                    animation: { 
+                        'fade-in': 'fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+                        'slide-in': 'slideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards',
                     }
                 }
             }
         }
     </script>
+    
     <script>
-        // Init Theme
-        if (localStorage.getItem('auraTheme') === 'dark' || (!('auraTheme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        // Check local storage or system preference
+        if (localStorage.getItem('auraTheme') === 'dark' || 
+           (!('auraTheme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
             document.documentElement.classList.add('dark');
         } else {
             document.documentElement.classList.remove('dark');
         }
     </script>
+
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    
     <link rel="stylesheet" href="style.css">
 </head>
-<body class="bg-slate-50 dark:bg-[#0F172A] min-h-screen font-sans text-slate-800 dark:text-slate-100 transition-colors duration-500">
+<body class="bg-body text-main min-h-screen selection:bg-black selection:text-white dark:selection:bg-white dark:selection:text-black">
 
-    <div id="auth-overlay" class="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-slate-100 dark:bg-slate-900 transition-all duration-500">
-        <div class="absolute top-0 left-0 w-full h-64 bg-gradient-to-br from-indigo-600 to-purple-700 rounded-b-[3rem] shadow-2xl"></div>
-        <div class="auth-card w-full max-w-sm rounded-3xl p-8 animate-fade-in relative overflow-hidden bg-white dark:bg-slate-800 border dark:border-slate-700 shadow-2xl">
-            <div class="text-center mb-8">
-                <div class="w-16 h-16 bg-indigo-50 dark:bg-indigo-900/30 rounded-2xl flex items-center justify-center mx-auto mb-4 text-indigo-600 dark:text-indigo-400 shadow-sm">
-                    <i data-lucide="sparkles" class="w-8 h-8 fill-current"></i>
-                </div>
-                <h2 id="auth-title" class="text-2xl font-bold">Welcome to Aura</h2>
-                <p class="text-sm text-slate-500 mt-2">Login to track your points & contest</p>
+    <div id="auth-overlay" class="fixed inset-0 z-[200] flex flex-col items-center justify-center p-6 bg-body transition-all duration-500">
+        <div class="w-full max-w-sm animate-fade-in">
+            <div class="mb-12">
+                <h1 class="text-6xl font-extrabold tracking-tighter leading-none mb-2">AURA.</h1>
+                <p class="text-muted font-medium text-lg">Focus. Execute. Repeat.</p>
             </div>
-            <form onsubmit="handleAuth(event)" class="space-y-4">
-                <div class="space-y-1">
-                    <label class="text-xs font-bold text-slate-400 uppercase ml-1">Username</label>
-                    <input type="text" id="auth-name" required class="w-full p-3.5 bg-slate-50 dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 transition-all placeholder:text-slate-400" placeholder="Enter your name">
-                </div>
-                <div class="space-y-1">
-                    <label class="text-xs font-bold text-slate-400 uppercase ml-1">Password</label>
-                    <input type="password" id="auth-pass" required class="w-full p-3.5 bg-slate-50 dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 transition-all" placeholder="••••••••">
-                </div>
-                <div id="field-confirm-pass" class="hidden space-y-1 animate-fade-in">
-                    <label class="text-xs font-bold text-slate-400 uppercase ml-1">Confirm Password</label>
-                    <input type="password" id="auth-confirm-pass" class="w-full p-3.5 bg-slate-50 dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 outline-none focus:border-indigo-500 transition-all" placeholder="••••••••">
-                </div>
-                <button type="submit" id="auth-submit" class="w-full py-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold shadow-lg shadow-indigo-500/30 transition-all mt-4 active:scale-95">Log In</button>
-            </form>
-            <div class="mt-8 text-center text-sm text-slate-500">
-                <p id="toggle-auth-mode">New here? <span class="text-indigo-600 font-bold cursor-pointer hover:underline" onclick="toggleAuthMode()">Create Account</span></p>
-            </div>
-        </div>
-        <div class="absolute bottom-6 flex flex-col items-center gap-1">
-            <div class="text-slate-400 text-xs font-medium">Productivity • Focus • Contest</div>
-            <div class="text-indigo-500/80 text-[10px] font-bold tracking-wide">Made by Patel Rudra</div>
-        </div>
-    </div>
 
-    <div id="main-app" class="hidden animate-fade-in flex flex-col min-h-screen pb-20"> 
-        <header class="max-w-xl mx-auto w-full px-6 pt-10 pb-6 flex justify-between items-center bg-slate-50/80 dark:bg-[#0F172A]/80 backdrop-blur-md z-40 sticky top-0">
-            <div class="flex items-center gap-3">
-                <div class="w-10 h-10 relative">
-                    <svg viewBox="0 0 512 512" class="w-full h-full drop-shadow-md"><defs><linearGradient id="auraGradientSmall" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#6366f1" /><stop offset="100%" stop-color="#a855f7" /></linearGradient></defs><rect x="32" y="32" width="448" height="448" rx="128" fill="url(#auraGradientSmall)" /><circle cx="256" cy="256" r="140" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="32" /><path d="M180 260 L240 320 L340 180" fill="none" stroke="white" stroke-width="48" stroke-linecap="round" stroke-linejoin="round" /></svg>
-                </div>
-                <div>
-                    <h1 class="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-slate-900 to-slate-600 dark:from-white dark:to-slate-400">Aura</h1>
+            <div class="auth-card p-8">
+                <h2 id="auth-title" class="text-2xl font-bold mb-6 tracking-tight">Enter Workspace</h2>
+                <form onsubmit="handleAuth(event)" class="space-y-4">
+                    <div class="space-y-1.5">
+                        <label class="text-[10px] font-bold text-muted uppercase tracking-widest">Username</label>
+                        <input type="text" id="auth-name" required class="input-s1n" placeholder="name_01">
+                    </div>
+                    <div class="space-y-1.5">
+                        <label class="text-[10px] font-bold text-muted uppercase tracking-widest">Password</label>
+                        <input type="password" id="auth-pass" required class="input-s1n" placeholder="••••••••">
+                    </div>
+                    
+                    <div id="field-confirm-pass" class="hidden space-y-1.5 animate-fade-in">
+                        <label class="text-[10px] font-bold text-muted uppercase tracking-widest">Confirm</label>
+                        <input type="password" id="auth-confirm-pass" class="input-s1n" placeholder="••••••••">
+                    </div>
+
+                    <button type="submit" id="auth-submit" class="btn-s1n w-full mt-4">Initialize Session</button>
+                </form>
+
+                <div class="mt-8 pt-6 border-t border-border">
+                    <p id="toggle-auth-mode" class="text-sm text-center text-muted">
+                        New agent? <span class="text-main font-bold cursor-pointer hover:underline" onclick="toggleAuthMode()">Create ID</span>
+                    </p>
                 </div>
             </div>
             
-            <div class="flex items-center gap-2">
-                <div class="flex items-center gap-1.5 px-3 py-1.5 bg-orange-50 dark:bg-orange-900/20 rounded-full border border-orange-100 dark:border-orange-900/50">
-                    <i data-lucide="flame" class="w-4 h-4 text-orange-500 fill-orange-500"></i>
-                    <span id="streak-count" class="text-sm font-bold text-orange-600 dark:text-orange-400">0</span>
-                </div>
-                
-                <button onclick="window.openAccount()" class="p-2.5 rounded-full bg-white dark:bg-slate-800/50 backdrop-blur-md border border-slate-200 dark:border-slate-700 shadow-sm hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
-                    <i data-lucide="user" class="w-5 h-5 text-indigo-500"></i>
-                </button>
-                <button onclick="openSettings()" class="p-2.5 rounded-full bg-white dark:bg-slate-800/50 backdrop-blur-md border border-slate-200 dark:border-slate-700 shadow-sm hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
-                    <i data-lucide="settings" class="w-5 h-5 text-slate-500 dark:text-slate-400"></i>
-                </button>
+            <div class="mt-12 text-center">
+                 <p class="text-[10px] font-bold text-muted uppercase tracking-[0.2em]">S1N Design System</p>
             </div>
+        </div>
+    </div>
+
+    <div id="main-app" class="hidden flex flex-col min-h-screen pb-24 max-w-lg mx-auto w-full relative"> 
+        
+        <header class="px-6 pt-12 pb-8 sticky top-0 z-40 bg-body/95 backdrop-blur-sm transition-all">
+            <div class="flex justify-between items-start mb-2">
+                <div>
+                    <h1 class="text-5xl font-extrabold tracking-tighter leading-[0.9]">AURA.</h1>
+                </div>
+                <div class="flex gap-2">
+                    <button onclick="window.openAccount()" class="w-10 h-10 rounded-full border border-border flex items-center justify-center hover:bg-card transition-colors">
+                        <i data-lucide="user" class="w-5 h-5"></i>
+                    </button>
+                    <button onclick="openSettings()" class="w-10 h-10 rounded-full border border-border flex items-center justify-center hover:bg-card transition-colors">
+                        <i data-lucide="settings" class="w-5 h-5"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="flex items-center gap-4">
+                <div class="flex items-center gap-2 px-3 py-1 border border-border rounded-full bg-card">
+                    <i data-lucide="flame" class="w-3 h-3 text-main"></i>
+                    <span id="streak-count" class="text-xs font-bold font-mono">0</span>
+                </div>
+                <div class="h-px flex-1 bg-border"></div> </div>
         </header>
 
-        <div class="max-w-xl mx-auto px-4 relative flex-1 w-full">
+        <div class="px-6 flex-1 w-full relative">
             
-            <section id="view-tasks" class="view-section transition-all duration-300">
-                <form id="task-form" class="mb-6">
+            <section id="view-tasks" class="view-section animate-fade-in">
+                <form id="task-form" class="mb-8">
                     <div class="relative group mb-3">
-                        <input type="text" id="task-input" placeholder="What needs doing?" autocomplete="off" class="w-full pl-4 pr-4 py-4 rounded-2xl bg-white dark:bg-slate-800 border-2 border-transparent focus:border-indigo-500/30 outline-none shadow-sm transition-all">
+                        <input type="text" id="task-input" placeholder="New Protocol..." autocomplete="off" class="input-s1n text-lg font-medium py-4">
                     </div>
-                    <div class="flex flex-wrap gap-2 items-center justify-between">
-                        <div class="flex gap-2">
-                            <input type="date" id="date-input" class="w-[110px] px-2 py-2.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs focus:border-indigo-500 outline-none shadow-sm cursor-pointer">
-                            <input type="time" id="time-input" class="w-[90px] px-2 py-2.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs focus:border-indigo-500 outline-none shadow-sm cursor-pointer">
-                        </div>
-                        <button type="submit" id="add-btn" disabled class="ml-auto px-6 py-2.5 bg-indigo-600 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-indigo-700 text-white rounded-xl transition-all shadow-md shadow-indigo-500/20">Add</button>
+                    <div class="flex gap-2">
+                        <input type="date" id="date-input" class="input-s1n w-auto text-xs">
+                        <input type="time" id="time-input" class="input-s1n w-auto text-xs">
+                        <button type="submit" id="add-btn" disabled class="btn-s1n ml-auto px-6 py-2">Add</button>
                     </div>
                 </form>
-                <div class="flex gap-2 mb-6 overflow-x-auto pb-2 scrollbar-hide">
-                    <button data-filter="all" class="filter-btn active px-4 py-2 rounded-xl text-sm font-medium bg-white dark:bg-slate-800 shadow-sm text-indigo-600 dark:text-indigo-400">All</button>
-                    <button data-filter="active" class="filter-btn px-4 py-2 rounded-xl text-sm font-medium text-slate-500 hover:bg-white dark:hover:bg-slate-800">Active</button>
-                    <button data-filter="completed" class="filter-btn px-4 py-2 rounded-xl text-sm font-medium text-slate-500 hover:bg-white dark:hover:bg-slate-800">Done</button>
+
+                <div class="flex gap-2 mb-6 border-b border-border pb-4 overflow-x-auto scrollbar-hide">
+                    <button data-filter="all" class="filter-btn active text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full border border-main bg-main text-body">All</button>
+                    <button data-filter="active" class="filter-btn text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full border border-transparent text-muted hover:text-main">Active</button>
+                    <button data-filter="completed" class="filter-btn text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full border border-transparent text-muted hover:text-main">Done</button>
                 </div>
-                <ul id="task-list" class="space-y-3 pb-8"></ul>
-                <div id="empty-state" class="hidden text-center py-12">
-                    <div class="w-20 h-20 bg-indigo-50 dark:bg-slate-800/50 rounded-full flex items-center justify-center mx-auto mb-4"><i data-lucide="coffee" class="w-8 h-8 text-indigo-300"></i></div>
-                    <p class="text-slate-400">No tasks here. Relax or add one!</p>
+
+                <ul id="task-list" class="space-y-3"></ul>
+                
+                <div id="empty-state" class="hidden py-12 border border-dashed border-border rounded-2xl text-center">
+                    <p class="text-muted font-medium">System Idle. Add Protocol.</p>
                 </div>
             </section>
 
-            <section id="view-focus" class="view-section hidden transition-all duration-300 flex flex-col items-center justify-center pt-4">
-                <div id="active-task-display" class="hidden w-full mb-6 animate-fade-in">
-                    <div class="bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-100 dark:border-indigo-500/20 p-4 rounded-2xl flex items-center justify-between shadow-sm">
-                        <div class="flex items-center gap-3 overflow-hidden">
-                            <div class="p-2 bg-white dark:bg-indigo-500/20 rounded-full text-indigo-500"><i data-lucide="target" class="w-4 h-4"></i></div>
-                            <div class="min-w-0"><p class="text-[10px] font-bold text-indigo-400 uppercase tracking-wider">Focusing on</p><p id="focus-task-text" class="text-sm font-medium text-slate-700 dark:text-slate-200 truncate">Task</p></div>
-                        </div>
-                        <button onclick="clearFocusTask()" class="p-2 hover:bg-white dark:hover:bg-slate-800 rounded-full text-slate-400 hover:text-rose-500 transition-colors"><i data-lucide="x" class="w-4 h-4"></i></button>
+            <section id="view-focus" class="view-section hidden animate-fade-in flex flex-col items-center">
+                <div id="active-task-display" class="hidden w-full mb-8">
+                    <div class="flex items-center justify-between p-4 border border-border rounded-full bg-card">
+                        <span class="text-xs font-bold uppercase tracking-wider text-muted ml-2">Focusing:</span>
+                        <span id="focus-task-text" class="font-bold text-sm truncate px-2">Task Name</span>
+                        <button onclick="clearFocusTask()" class="p-1 hover:text-rose-500"><i data-lucide="x" class="w-4 h-4"></i></button>
                     </div>
                 </div>
-                <div class="w-full bg-white dark:bg-slate-800 rounded-3xl p-8 shadow-xl shadow-indigo-500/5 dark:shadow-none border border-slate-100 dark:border-slate-700 relative overflow-hidden">
-                    <div class="flex justify-center gap-2 mb-8 bg-slate-100 dark:bg-slate-900/50 p-1 rounded-xl w-fit mx-auto relative z-10">
-                        <button id="mode-work" class="px-4 py-2 rounded-lg text-sm font-medium transition-all bg-white dark:bg-slate-700 shadow-sm text-indigo-600 dark:text-indigo-300">Focus</button>
-                        <button id="mode-short" class="px-4 py-2 rounded-lg text-sm font-medium transition-all text-slate-500 hover:text-slate-700 dark:text-slate-400">Short Break</button>
-                        <button id="mode-long" class="px-4 py-2 rounded-lg text-sm font-medium transition-all text-slate-500 hover:text-slate-700 dark:text-slate-400">Long Break</button>
-                    </div>
-                    <div class="relative w-64 h-64 mx-auto mb-8 z-10">
+
+                <div class="card-s1n p-8 w-full flex flex-col items-center relative overflow-hidden mb-6">
+                    <div class="relative w-64 h-64 mb-8">
                         <svg class="w-full h-full transform -rotate-90">
-                            <circle cx="128" cy="128" r="120" stroke="currentColor" stroke-width="8" fill="transparent" class="text-slate-100 dark:text-slate-700" />
-                            <circle id="progress-ring" cx="128" cy="128" r="120" stroke="currentColor" stroke-width="8" fill="transparent" class="text-indigo-500 transition-all duration-1000 ease-linear" stroke-dasharray="753.98" stroke-dashoffset="0" stroke-linecap="round" />
+                            <circle cx="128" cy="128" r="118" stroke="var(--border-light)" stroke-width="2" fill="none" />
+                            <circle id="progress-ring" cx="128" cy="128" r="118" stroke="var(--text-main)" stroke-width="4" fill="none" 
+                                    stroke-dasharray="741" stroke-dashoffset="0" stroke-linecap="round" />
                         </svg>
                         <div class="absolute inset-0 flex flex-col items-center justify-center">
-                            <span id="timer-display" class="text-6xl font-bold tracking-tight text-slate-800 dark:text-white tabular-nums">25:00</span>
-                            <span id="timer-status" class="text-sm font-medium text-slate-400 mt-2 uppercase tracking-widest">Ready</span>
+                            <span id="timer-display" class="text-7xl font-extrabold tracking-tighter tabular-nums">25:00</span>
+                            <span id="timer-status" class="text-xs font-bold uppercase tracking-[0.2em] mt-2 text-muted">Ready</span>
                         </div>
                     </div>
-                    <div class="flex justify-center gap-4 relative z-10">
-                        <button id="timer-toggle" class="w-16 h-16 flex items-center justify-center rounded-full bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-500/30 transition-all active:scale-95"><i data-lucide="play" class="w-6 h-6 ml-1"></i></button>
-                        <button id="timer-reset" class="w-16 h-16 flex items-center justify-center rounded-full bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600 transition-all active:scale-95"><i data-lucide="rotate-ccw" class="w-6 h-6"></i></button>
+
+                    <div class="flex gap-4 w-full justify-center">
+                        <button id="timer-reset" class="w-14 h-14 rounded-full border border-border flex items-center justify-center hover:bg-border transition-colors">
+                            <i data-lucide="rotate-ccw" class="w-5 h-5"></i>
+                        </button>
+                        <button id="timer-toggle" class="h-14 px-8 rounded-full bg-main text-body font-bold text-lg flex items-center gap-2 hover:opacity-90 transition-opacity">
+                            <i data-lucide="play" class="w-5 h-5 fill-current"></i> Start
+                        </button>
                     </div>
                 </div>
-                <div class="mt-6 flex gap-4 text-center w-full">
-                    <div class="flex-1 bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-100 dark:border-slate-700/50"><p class="text-xs text-slate-400 uppercase font-bold tracking-wider">Sessions</p><p id="sessions-count" class="text-2xl font-bold text-indigo-600 dark:text-indigo-400">0</p></div>
-                    <div class="flex-1 bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-100 dark:border-slate-700/50"><p class="text-xs text-slate-400 uppercase font-bold tracking-wider">Minutes</p><p id="minutes-count" class="text-2xl font-bold text-purple-600 dark:text-purple-400">0</p></div>
-                </div>
-                <div class="mt-8 w-full">
-                    <div class="flex justify-between items-end mb-4 px-2">
-                        <h3 class="text-sm font-bold text-slate-400 uppercase tracking-wider">Recent History</h3>
-                        <button onclick="clearHistory()" class="text-xs text-slate-400 hover:text-rose-500 transition-colors">Clear</button>
-                    </div>
-                    <ul id="history-list" class="space-y-2"></ul>
+
+                <div class="flex justify-center gap-2 mb-8">
+                    <button id="mode-work" class="px-4 py-2 text-xs font-bold uppercase tracking-wider rounded-full border border-main bg-main text-body">Focus</button>
+                    <button id="mode-short" class="px-4 py-2 text-xs font-bold uppercase tracking-wider rounded-full border border-transparent text-muted hover:border-border">Short</button>
+                    <button id="mode-long" class="px-4 py-2 text-xs font-bold uppercase tracking-wider rounded-full border border-transparent text-muted hover:border-border">Long</button>
                 </div>
             </section>
 
-            <section id="view-reports" class="view-section hidden transition-all duration-300 pt-4">
-                 <div class="bg-gradient-to-br from-indigo-600 to-purple-700 rounded-3xl p-6 text-white shadow-lg shadow-indigo-500/30 mb-8">
-                    <h2 class="text-xl font-bold mb-1">Your Analytics</h2>
-                    <p class="text-indigo-100 text-sm opacity-90">Track your productivity trends</p>
-                </div>
+            <section id="view-reports" class="view-section hidden animate-fade-in">
+                <h2 class="text-3xl font-bold tracking-tight mb-6">Analytics.</h2>
                 
-                <div class="flex p-1 bg-slate-100 dark:bg-slate-800 rounded-2xl mb-6 shadow-sm border border-slate-200 dark:border-slate-700">
-                    <button onclick="switchReportTab('daily')" data-type="daily" class="report-tab flex-1 py-2.5 rounded-xl text-sm font-medium text-slate-500 transition-all">Daily</button>
-                    <button onclick="switchReportTab('weekly')" data-type="weekly" class="report-tab flex-1 py-2.5 rounded-xl text-sm font-medium text-slate-500 transition-all">Weekly</button>
-                    <button onclick="switchReportTab('monthly')" data-type="monthly" class="report-tab flex-1 py-2.5 rounded-xl text-sm font-medium text-slate-500 transition-all">Monthly</button>
+                <div class="flex border-b border-border mb-6">
+                    <button onclick="switchReportTab('daily')" data-type="daily" class="report-tab flex-1 pb-3 text-xs font-bold uppercase tracking-wider border-b-2 border-main text-main">Daily</button>
+                    <button onclick="switchReportTab('weekly')" data-type="weekly" class="report-tab flex-1 pb-3 text-xs font-bold uppercase tracking-wider border-b-2 border-transparent text-muted hover:text-main">Weekly</button>
+                    <button onclick="switchReportTab('monthly')" data-type="monthly" class="report-tab flex-1 pb-3 text-xs font-bold uppercase tracking-wider border-b-2 border-transparent text-muted hover:text-main">Monthly</button>
                 </div>
 
-                <div id="report-content" class="w-full">
-                </div>
-            </section>
-
-            <section id="view-contest" class="view-section hidden transition-all duration-300 pt-4">
-                <div class="bg-gradient-to-br from-orange-500 to-rose-600 rounded-3xl p-6 text-white shadow-lg shadow-orange-500/30 mb-6">
-                    <h2 class="text-xl font-bold mb-1">Global Contest</h2>
-                    <p class="text-orange-100 text-sm opacity-90">Compete with friends & world</p>
-                </div>
-                
-                <div class="flex gap-2 p-1 bg-slate-100 dark:bg-slate-800 rounded-2xl mb-6 overflow-x-auto">
-                    <button id="tab-global" onclick="setSocialTab('global')" class="flex-1 py-2 bg-indigo-600 text-white rounded-xl text-sm font-bold shadow-md transition-all whitespace-nowrap px-4">Global</button>
-                    <button id="tab-league" onclick="setSocialTab('league')" class="flex-1 py-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl text-sm font-medium transition-all whitespace-nowrap px-4">League</button>
-                    <button id="tab-friends" onclick="setSocialTab('friends')" class="flex-1 py-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl text-sm font-medium transition-all whitespace-nowrap px-4">My Friends</button>
-                </div>
-
-                <div class="relative group mb-6">
-                    <i data-lucide="search" class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400"></i>
-                    <input type="text" id="user-search" placeholder="Search user to add..." class="w-full pl-12 pr-4 py-4 rounded-2xl bg-white dark:bg-slate-800 border-2 border-transparent focus:border-indigo-500/30 outline-none shadow-sm transition-all">
-                </div>
-                
-                <div id="contest-list" class="pb-24 min-h-[300px]"></div>
-            </section>
-
-            <section id="view-shop" class="view-section hidden transition-all duration-300 pt-4">
-                <div class="bg-gradient-to-br from-emerald-500 to-teal-600 rounded-3xl p-6 text-white shadow-lg shadow-emerald-500/30 mb-6 relative overflow-hidden">
-                    <div class="relative z-10">
-                        <h2 class="text-xl font-bold mb-1">Rewards Shop</h2>
-                        <p class="text-emerald-100 text-sm opacity-90">Spend points on badges & upgrades</p>
-                        <div class="mt-4 inline-flex items-center gap-2 bg-white/20 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/30">
-                            <i data-lucide="coins" class="w-4 h-4 text-amber-300 fill-amber-300"></i>
-                            <span id="shop-points-display" class="font-bold text-sm">0</span> <span class="text-xs opacity-80">PTS</span>
-                        </div>
-                    </div>
-                    <i data-lucide="shopping-bag" class="absolute -bottom-4 -right-4 w-32 h-32 text-white opacity-10 rotate-12"></i>
-                </div>
-
-                <div id="shop-list" class="grid grid-cols-2 gap-3 pb-24">
+                <div id="report-content" class="w-full space-y-4">
                     </div>
             </section>
 
-            <section id="view-admin" class="view-section hidden transition-all duration-300 pt-4">
-                <div class="bg-slate-800 text-white rounded-3xl p-6 shadow-lg mb-6">
-                    <h2 class="text-xl font-bold mb-1 flex items-center gap-2"><i data-lucide="shield-alert" class="w-5 h-5"></i>Admin Panel</h2>
-                    <p class="text-slate-400 text-sm opacity-90">Manage and remove users</p>
+            <section id="view-contest" class="view-section hidden animate-fade-in">
+                <h2 class="text-3xl font-bold tracking-tight mb-2">Network.</h2>
+                <p class="text-muted text-sm mb-6">Global Leaderboard & Friends</p>
+
+                <div class="flex gap-2 mb-6 overflow-x-auto scrollbar-hide">
+                    <button id="tab-global" onclick="setSocialTab('global')" class="px-4 py-2 rounded-full border border-main bg-main text-body text-xs font-bold uppercase whitespace-nowrap">Global</button>
+                    <button id="tab-league" onclick="setSocialTab('league')" class="px-4 py-2 rounded-full border border-border text-muted hover:text-main text-xs font-bold uppercase whitespace-nowrap">League</button>
+                    <button id="tab-friends" onclick="setSocialTab('friends')" class="px-4 py-2 rounded-full border border-border text-muted hover:text-main text-xs font-bold uppercase whitespace-nowrap">Friends</button>
                 </div>
-                
-                <div class="relative group mb-6">
-                    <i data-lucide="search" class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400"></i>
-                    <input type="text" id="admin-search" placeholder="Search user to delete..." class="w-full pl-12 pr-4 py-4 rounded-2xl bg-white dark:bg-slate-800 border-2 border-transparent focus:border-rose-500/30 outline-none shadow-sm transition-all">
+
+                <div class="relative mb-6">
+                    <i data-lucide="search" class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted"></i>
+                    <input type="text" id="user-search" placeholder="Search Agent..." class="input-s1n pl-10">
                 </div>
-            
-                <div id="admin-user-list" class="space-y-3 pb-24">
-                    </div>
+
+                <div id="contest-list" class="space-y-2 pb-24"></div>
             </section>
+
+            <section id="view-shop" class="view-section hidden animate-fade-in">
+                <div class="flex justify-between items-end mb-6">
+                    <h2 class="text-3xl font-bold tracking-tight">Market.</h2>
+                    <div class="text-right">
+                        <span id="shop-points-display" class="block text-2xl font-bold font-mono">0</span>
+                        <span class="text-[10px] font-bold uppercase text-muted tracking-wider">Credits</span>
+                    </div>
+                </div>
+
+                <div id="shop-list" class="grid grid-cols-2 gap-4 pb-24"></div>
+            </section>
+
+            <section id="view-admin" class="view-section hidden animate-fade-in">
+                <h2 class="text-3xl font-bold tracking-tight mb-6 text-rose-500">Admin Control.</h2>
+                <input type="text" id="admin-search" placeholder="Search Database..." class="input-s1n mb-6">
+                <div id="admin-user-list" class="space-y-3 pb-24"></div>
+            </section>
+
         </div>
 
-        <nav class="fixed bottom-0 left-0 w-full bg-white dark:bg-[#0F172A] border-t border-slate-200 dark:border-slate-800 flex justify-around items-center py-4 z-50 shadow-[0_-5px_20px_rgba(0,0,0,0.05)]">
-            <button onclick="switchView('tasks')" id="nav-tasks" class="nav-item active flex flex-col items-center gap-1 text-[10px] font-medium transition-all text-indigo-600 dark:text-indigo-400">
-                <i data-lucide="check-circle-2" class="w-6 h-6 mb-0.5"></i>
-                <span>Tasks</span>
+        <nav class="fixed bottom-6 left-6 right-6 max-w-[calc(100%-3rem)] md:max-w-md md:mx-auto bg-main text-body rounded-full px-6 py-4 shadow-2xl flex justify-between items-center z-50">
+            <button onclick="switchView('tasks')" id="nav-tasks" class="nav-item opacity-100 transition-opacity">
+                <i data-lucide="list" class="w-5 h-5"></i>
             </button>
-            <button onclick="switchView('focus')" id="nav-focus" class="nav-item flex flex-col items-center gap-1 text-[10px] font-medium transition-all text-slate-400 hover:text-slate-600 dark:hover:text-slate-300">
-                <i data-lucide="timer" class="w-6 h-6 mb-0.5"></i>
-                <span>Focus</span>
+            <button onclick="switchView('focus')" id="nav-focus" class="nav-item opacity-50 hover:opacity-100 transition-opacity">
+                <i data-lucide="clock" class="w-5 h-5"></i>
             </button>
-            <button onclick="switchView('reports')" id="nav-reports" class="nav-item flex flex-col items-center gap-1 text-[10px] font-medium transition-all text-slate-400 hover:text-slate-600 dark:hover:text-slate-300">
-                <i data-lucide="bar-chart-2" class="w-6 h-6 mb-0.5"></i>
-                <span>Reports</span>
+            <button onclick="switchView('reports')" id="nav-reports" class="nav-item opacity-50 hover:opacity-100 transition-opacity">
+                <i data-lucide="bar-chart-2" class="w-5 h-5"></i>
             </button>
-            <button onclick="switchView('contest')" id="nav-contest" class="nav-item flex flex-col items-center gap-1 text-[10px] font-medium transition-all text-slate-400 hover:text-slate-600 dark:hover:text-slate-300">
-                <i data-lucide="trophy" class="w-6 h-6 mb-0.5"></i>
-                <span>Contest</span>
+            <button onclick="switchView('contest')" id="nav-contest" class="nav-item opacity-50 hover:opacity-100 transition-opacity">
+                <i data-lucide="globe" class="w-5 h-5"></i>
             </button>
-            
-            <button onclick="switchView('shop')" id="nav-shop" class="nav-item flex flex-col items-center gap-1 text-[10px] font-medium transition-all text-slate-400 hover:text-slate-600 dark:hover:text-slate-300">
-                <i data-lucide="shopping-bag" class="w-6 h-6 mb-0.5"></i>
-                <span>Shop</span>
+            <button onclick="switchView('shop')" id="nav-shop" class="nav-item opacity-50 hover:opacity-100 transition-opacity">
+                <i data-lucide="shopping-bag" class="w-5 h-5"></i>
             </button>
-            
-            <button onclick="switchView('admin')" id="nav-admin" class="nav-item hidden flex flex-col items-center gap-1 text-[10px] font-medium transition-all text-rose-500 hover:text-rose-600">
-                <i data-lucide="shield" class="w-6 h-6 mb-0.5"></i>
-                <span>Admin</span>
+            <button onclick="switchView('admin')" id="nav-admin" class="nav-item hidden text-rose-300 opacity-100">
+                <i data-lucide="shield" class="w-5 h-5"></i>
             </button>
         </nav>
+
     </div>
 
-    <div id="friend-modal" class="hidden fixed inset-0 z-[150] flex items-center justify-center px-4">
-        <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onclick="document.getElementById('friend-modal').classList.add('hidden')"></div>
-        <div id="friend-modal-content" class="bg-white dark:bg-slate-800 rounded-3xl p-6 w-full max-w-sm shadow-2xl relative animate-fade-in border border-slate-100 dark:border-slate-700">
-        </div>
-    </div>
-
-    <div id="account-modal" class="hidden fixed inset-0 z-[100] flex items-center justify-center px-4">
-        <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" onclick="closeAccount()"></div>
-        <div class="bg-white dark:bg-slate-800 rounded-3xl p-6 w-full max-w-sm shadow-2xl relative animate-fade-in border border-slate-100 dark:border-slate-700">
-            <div class="flex justify-between items-center mb-6">
-                <h3 class="text-lg font-bold">Your Profile</h3>
-                <button onclick="closeAccount()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"><i data-lucide="x" class="w-5 h-5"></i></button>
+    <div id="friend-modal" class="hidden fixed inset-0 z-[150] flex items-center justify-center p-6 bg-black/50 backdrop-blur-sm">
+        <div id="friend-modal-content" class="card-s1n w-full max-w-sm p-6 relative animate-pop">
             </div>
-            <div class="flex gap-4 mb-6">
-                <div class="flex-1 bg-gradient-to-br from-indigo-500 to-purple-600 p-4 rounded-2xl text-white shadow-lg shadow-indigo-500/20">
-                    <div class="flex items-center gap-2 mb-1 opacity-90 text-sm font-medium"><i data-lucide="star" class="w-4 h-4 fill-white"></i> Points</div>
-                    <div id="display-points" class="text-3xl font-bold tracking-tight">0</div>
-                </div>
-                <div class="flex-1 bg-gradient-to-br from-orange-400 to-rose-500 p-4 rounded-2xl text-white shadow-lg shadow-orange-500/20">
-                    <div class="flex items-center gap-2 mb-1 opacity-90 text-sm font-medium"><i data-lucide="flame" class="w-4 h-4 fill-white"></i> Streak</div>
-                    <div class="text-3xl font-bold tracking-tight"><span id="display-streak">0</span></div>
-                </div>
+    </div>
+
+    <div id="account-modal" class="hidden fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/50 backdrop-blur-sm">
+        <div class="card-s1n w-full max-w-sm p-6 relative animate-pop">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-xl font-bold tracking-tight">Identity</h3>
+                <button onclick="closeAccount()"><i data-lucide="x" class="w-5 h-5"></i></button>
             </div>
             
-            <div class="p-4 bg-slate-50 dark:bg-slate-700/30 rounded-2xl mb-4">
-                 <p class="text-xs text-slate-500 dark:text-slate-400 text-center uppercase font-bold tracking-wider mb-2">Current User</p>
-                 <p id="profile-name" class="text-center font-bold text-lg text-slate-700 dark:text-slate-200">Guest</p>
+            <div class="grid grid-cols-2 gap-4 mb-6">
+                <div class="p-4 border border-border rounded-xl text-center">
+                    <div id="display-points" class="text-2xl font-bold font-mono">0</div>
+                    <div class="text-[10px] uppercase font-bold text-muted">Credits</div>
+                </div>
+                <div class="p-4 border border-border rounded-xl text-center">
+                    <div id="display-streak" class="text-2xl font-bold font-mono">0</div>
+                    <div class="text-[10px] uppercase font-bold text-muted">Streak</div>
+                </div>
             </div>
 
-            <button onclick="toggleChangePass()" class="w-full mb-3 py-3 bg-indigo-50 dark:bg-slate-700/50 text-indigo-600 dark:text-indigo-400 rounded-xl text-sm font-medium hover:bg-indigo-100 dark:hover:bg-slate-600 transition-colors flex items-center justify-center gap-2">
-                <i data-lucide="key" class="w-4 h-4"></i> Change Password
-            </button>
+            <div id="profile-badges"></div>
 
-            <div id="change-pass-form" class="hidden mb-4 p-4 bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-slate-100 dark:border-slate-700 space-y-3 animate-fade-in">
-                <input type="password" id="cp-old" placeholder="Current Password" class="w-full p-3 bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-600 text-sm outline-none focus:border-indigo-500 transition-colors">
-                <input type="password" id="cp-new" placeholder="New Password" class="w-full p-3 bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-600 text-sm outline-none focus:border-indigo-500 transition-colors">
-                <button onclick="submitChangePass()" id="cp-btn" class="w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-bold shadow-md transition-all">Update Password</button>
+            <div class="p-4 bg-input rounded-xl mb-4 text-center">
+                 <p class="text-[10px] uppercase font-bold text-muted mb-1">Agent Name</p>
+                 <p id="profile-name" class="font-bold text-lg">Guest</p>
             </div>
 
-            <button onclick="logout()" class="w-full py-3 bg-slate-100 dark:bg-slate-700/50 text-slate-600 dark:text-slate-400 rounded-xl text-sm font-medium hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors flex items-center justify-center gap-2">
-                <i data-lucide="log-out" class="w-4 h-4"></i> Sign Out
-            </button>
-            <button onclick="deleteAccount()" class="w-full mt-3 py-3 bg-white dark:bg-slate-800 border border-rose-100 dark:border-rose-900/30 text-rose-500 rounded-xl text-sm font-medium hover:bg-rose-50 dark:hover:bg-rose-900/20 transition-colors flex items-center justify-center gap-2">
-                <i data-lucide="trash-2" class="w-4 h-4"></i> Delete Account
-            </button>
-            <div class="mt-6 text-center">
-                <p class="text-[10px] text-slate-400 uppercase tracking-widest font-bold">Developed By</p>
-                <p class="text-xs font-medium text-indigo-500 mt-1">Patel Rudra</p>
+            <div class="space-y-2">
+                <button onclick="toggleChangePass()" class="w-full py-3 border border-border rounded-xl text-sm font-bold hover:bg-input transition-colors">Change Password</button>
+                
+                <div id="change-pass-form" class="hidden space-y-2 p-3 bg-input rounded-xl">
+                    <input type="password" id="cp-old" placeholder="Old Pass" class="input-s1n py-2 text-sm bg-card">
+                    <input type="password" id="cp-new" placeholder="New Pass" class="input-s1n py-2 text-sm bg-card">
+                    <button onclick="submitChangePass()" id="cp-btn" class="btn-s1n w-full py-2 text-xs">Update</button>
+                </div>
+
+                <button onclick="logout()" class="w-full py-3 border border-border rounded-xl text-sm font-bold hover:bg-input transition-colors">Sign Out</button>
+                <button onclick="deleteAccount()" class="w-full py-3 border border-rose-200 text-rose-500 rounded-xl text-sm font-bold hover:bg-rose-50 dark:hover:bg-rose-900/10 transition-colors">Delete Identity</button>
             </div>
         </div>
     </div>
 
-    <div id="settings-modal" class="hidden fixed inset-0 z-[100] flex items-center justify-center px-4">
-        <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" onclick="closeSettings()"></div>
-        <div class="bg-white dark:bg-slate-800 rounded-3xl p-6 w-full max-w-sm shadow-2xl relative animate-fade-in border border-slate-100 dark:border-slate-700">
-            <h3 class="text-lg font-bold mb-4 flex items-center gap-2">
-                <i data-lucide="settings" class="w-5 h-5 text-indigo-500"></i> Settings
-            </h3>
+    <div id="settings-modal" class="hidden fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/50 backdrop-blur-sm">
+        <div class="card-s1n w-full max-w-sm p-6 relative animate-pop">
+            <h3 class="text-xl font-bold tracking-tight mb-6">System Config</h3>
             
             <div class="space-y-6">
                 <div>
-                     <label class="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-3">General</label>
-                     <button onclick="openNotificationHistory()" class="w-full flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-700/50 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">
-                        <div class="flex items-center gap-3">
-                            <div class="p-2 bg-white dark:bg-slate-600 rounded-lg text-indigo-500 dark:text-indigo-400"><i data-lucide="bell" class="w-4 h-4"></i></div>
-                            <span class="text-sm font-medium text-slate-700 dark:text-slate-200">Notifications</span>
+                    <label class="text-[10px] font-bold text-muted uppercase tracking-wider block mb-3">Theme</label>
+                    <div class="flex border border-border rounded-xl overflow-hidden">
+                        <button onclick="setTheme('light')" id="theme-btn-light" class="flex-1 py-2 text-xs font-bold uppercase transition-colors">Light</button>
+                        <button onclick="setTheme('dark')" id="theme-btn-dark" class="flex-1 py-2 text-xs font-bold uppercase transition-colors">Dark</button>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="text-[10px] font-bold text-muted uppercase tracking-wider block mb-3">Timer (Minutes)</label>
+                    <div class="grid grid-cols-3 gap-2">
+                        <div class="text-center">
+                            <input type="number" id="setting-focus" class="input-s1n text-center p-2 text-sm">
+                            <span class="text-[10px] text-muted mt-1 block">Focus</span>
                         </div>
-                        <i data-lucide="chevron-right" class="w-4 h-4 text-slate-400"></i>
-                     </button>
-                </div>
-
-                <div>
-                    <label class="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-3">Appearance</label>
-                    <div class="bg-slate-100 dark:bg-slate-700/50 p-1 rounded-xl flex">
-                        <button onclick="setTheme('light')" id="theme-btn-light" class="flex-1 py-2 rounded-lg text-sm font-medium transition-all flex items-center justify-center gap-2 text-slate-500">
-                            <i data-lucide="sun" class="w-4 h-4"></i> Light
-                        </button>
-                        <button onclick="setTheme('dark')" id="theme-btn-dark" class="flex-1 py-2 rounded-lg text-sm font-medium transition-all flex items-center justify-center gap-2 text-slate-500">
-                            <i data-lucide="moon" class="w-4 h-4"></i> Dark
-                        </button>
+                        <div class="text-center">
+                            <input type="number" id="setting-short" class="input-s1n text-center p-2 text-sm">
+                            <span class="text-[10px] text-muted mt-1 block">Short</span>
+                        </div>
+                        <div class="text-center">
+                            <input type="number" id="setting-long" class="input-s1n text-center p-2 text-sm">
+                            <span class="text-[10px] text-muted mt-1 block">Long</span>
+                        </div>
                     </div>
                 </div>
-
-                <div>
-                    <label class="text-xs font-bold text-slate-400 uppercase tracking-wider block mb-3">Timer Duration (Minutes)</label>
-                    <div class="space-y-3">
-                        <div class="flex justify-between items-center"><label class="text-sm font-medium text-slate-500 dark:text-slate-300">Focus</label><input type="number" id="setting-focus" class="w-20 p-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-center outline-none"></div>
-                        <div class="flex justify-between items-center"><label class="text-sm font-medium text-slate-500 dark:text-slate-300">Short Break</label><input type="number" id="setting-short" class="w-20 p-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-center outline-none"></div>
-                        <div class="flex justify-between items-center"><label class="text-sm font-medium text-slate-500 dark:text-slate-300">Long Break</label><input type="number" id="setting-long" class="w-20 p-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-center outline-none"></div>
-                    </div>
-                </div>
+                
+                <button onclick="openNotificationHistory()" class="w-full flex justify-between items-center py-3 px-4 border border-border rounded-xl text-sm font-bold hover:bg-input">
+                    <span>Notification Logs</span>
+                    <i data-lucide="chevron-right" class="w-4 h-4"></i>
+                </button>
             </div>
 
-            <button onclick="saveSettings()" class="w-full mt-6 bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-xl font-medium transition-colors shadow-lg shadow-indigo-500/30">Save Changes</button>
+            <button onclick="saveSettings()" class="btn-s1n w-full mt-8">Save Config</button>
+            <button onclick="closeSettings()" class="w-full mt-2 py-3 text-xs font-bold text-muted hover:text-main">Cancel</button>
         </div>
     </div>
-
-    <div id="notification-history-modal" class="hidden fixed inset-0 z-[150] flex items-center justify-center px-4">
-        <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" onclick="closeNotificationHistory()"></div>
-        <div class="bg-white dark:bg-slate-800 rounded-3xl p-6 w-full max-w-sm shadow-2xl relative animate-fade-in border border-slate-100 dark:border-slate-700 flex flex-col max-h-[80vh]">
-            <div class="flex justify-between items-center mb-4 shrink-0">
-                <h3 class="text-lg font-bold flex items-center gap-2">
-                    <i data-lucide="bell" class="w-5 h-5 text-indigo-500"></i> Notifications
-                </h3>
-                <div class="flex gap-3">
-                    <button onclick="clearAllNotifications()" class="text-xs font-medium text-slate-400 hover:text-rose-500 uppercase tracking-wide">Clear</button>
-                    <button onclick="closeNotificationHistory()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"><i data-lucide="x" class="w-5 h-5"></i></button>
-                </div>
+    
+    <div id="notification-history-modal" class="hidden fixed inset-0 z-[150] flex items-center justify-center p-6 bg-black/50 backdrop-blur-sm">
+        <div class="card-s1n w-full max-w-sm h-[60vh] flex flex-col p-6 animate-pop">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="font-bold">System Logs</h3>
+                <button onclick="closeNotificationHistory()"><i data-lucide="x" class="w-5 h-5"></i></button>
             </div>
-            
-            <div id="notification-history-list" class="space-y-3 overflow-y-auto pr-2 flex-1 scrollbar-hide">
-                </div>
+            <div id="notification-history-list" class="flex-1 overflow-y-auto space-y-2 pr-1 scrollbar-hide"></div>
+            <button onclick="clearAllNotifications()" class="mt-4 text-xs font-bold text-rose-500 uppercase tracking-wider text-center">Clear Logs</button>
         </div>
     </div>
 
@@ -395,7 +357,6 @@
 
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
-    
     <script>
         const firebaseConfig = {
           apiKey: "AIzaSyCq2wOw4L_bVUC4rINviWMBGjEtOALmgnE",
@@ -410,7 +371,7 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
     </script>
-
+    
     <script src="auth.js"></script>
     <script src="social.js"></script>
     <script src="notifications.js"></script>
@@ -421,64 +382,27 @@
     <script src="reports.js"></script>
     
     <script>
+        // INIT ICONS & NAVIGATION
         lucide.createIcons();
+        
         function switchView(viewName) {
-            const views = { 
-                tasks: document.getElementById('view-tasks'), 
-                focus: document.getElementById('view-focus'), 
-                reports: document.getElementById('view-reports'),
-                contest: document.getElementById('view-contest'),
-                shop: document.getElementById('view-shop'), 
-                admin: document.getElementById('view-admin') 
-            };
-            const navs = { 
-                tasks: document.getElementById('nav-tasks'), 
-                focus: document.getElementById('nav-focus'), 
-                reports: document.getElementById('nav-reports'),
-                contest: document.getElementById('nav-contest'),
-                shop: document.getElementById('nav-shop'), 
-                admin: document.getElementById('nav-admin') 
-            };
+            // Hide all views
+            document.querySelectorAll('.view-section').forEach(el => el.classList.add('hidden'));
             
-            // Hide all views and reset animation
-            Object.values(views).forEach(el => { 
-                if(el) {
-                    el.classList.add('hidden'); 
-                    el.classList.remove('animate-fade-in'); 
-                }
+            // Reset Nav Icons opacity
+            document.querySelectorAll('.nav-item').forEach(el => {
+                if(el.id !== 'nav-admin') el.classList.replace('opacity-100', 'opacity-50');
             });
-            
-            // Reset nav buttons (Check if nav exists first)
-            Object.values(navs).forEach(el => { 
-                if(el) {
-                    el.classList.remove('active', 'text-indigo-600', 'dark:text-indigo-400'); 
-                    el.classList.add('text-slate-400', 'hover:text-slate-600', 'dark:hover:text-slate-300'); 
-                    // Admin button has specific red hover style, let's reset it to base slate first
-                    if(el.id === 'nav-admin') {
-                         el.classList.remove('text-rose-500');
-                    }
-                }
-            });
-            
-            // Show active view with fade animation
-            if(views[viewName]) {
-                views[viewName].classList.remove('hidden');
-                void views[viewName].offsetWidth; // Trigger reflow
-                views[viewName].classList.add('animate-fade-in');
-            }
-            
-            // Highlight active nav
-            if(navs[viewName]) {
-                if(viewName === 'admin') {
-                     navs[viewName].classList.add('text-rose-500');
-                     navs[viewName].classList.remove('text-slate-400');
-                } else {
-                    navs[viewName].classList.add('active', 'text-indigo-600', 'dark:text-indigo-400');
-                    navs[viewName].classList.remove('text-slate-400', 'hover:text-slate-600', 'dark:hover:text-slate-300');
-                }
-            }
-            
-            // Trigger View Specific Data Loads
+
+            // Show target view
+            const target = document.getElementById('view-' + viewName);
+            if(target) target.classList.remove('hidden');
+
+            // Highlight Nav
+            const nav = document.getElementById('nav-' + viewName);
+            if(nav && viewName !== 'admin') nav.classList.replace('opacity-50', 'opacity-100');
+
+            // Trigger Specific Loads
             if(viewName === 'contest' && window.loadContestData) window.loadContestData();
             if(viewName === 'reports' && window.initReports) window.initReports();
             if(viewName === 'admin' && window.loadAdminPanel) window.loadAdminPanel();

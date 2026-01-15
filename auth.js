@@ -1,4 +1,4 @@
-/* auth.js - Admin & Auth Logic (Updated for Shop) */
+/* auth.js - S1N Industrial Theme Update */
 
 // --- STATE ---
 let currentUser = JSON.parse(localStorage.getItem('auraUser')) || null;
@@ -43,9 +43,10 @@ function listenForBroadcasts() {
         const data = snapshot.val();
         if (data && data.message && data.timestamp) {
             const timeSince = Date.now() - data.timestamp;
+            // Show only recent broadcasts (10s window)
             if (timeSince < 10000) { 
                 if (window.showNotification) {
-                    window.showNotification("📢 System Message", data.message, "info");
+                    window.showNotification("SYSTEM BROADCAST", data.message, "info");
                 }
             }
         }
@@ -62,7 +63,6 @@ function checkAdminAccess() {
         
         const search = document.getElementById('admin-search');
         if (search) {
-            // Replace to remove old listeners
             const newSearch = search.cloneNode(true);
             search.parentNode.replaceChild(newSearch, search);
             newSearch.addEventListener('input', (e) => loadAdminPanel(e.target.value));
@@ -105,26 +105,26 @@ window.loadAdminPanel = function(filter = '') {
 
         list.innerHTML = '';
 
-        // --- DASHBOARD UI ---
+        // --- DASHBOARD UI (S1N Style) ---
         const dashboardHTML = `
             <div class="grid grid-cols-3 gap-2 mb-6 animate-fade-in">
-                <div class="bg-indigo-50 dark:bg-indigo-900/20 p-3 rounded-xl border border-indigo-100 dark:border-indigo-500/20 text-center">
-                    <div class="text-[10px] uppercase font-bold text-slate-400">Users</div>
-                    <div class="text-xl font-bold text-indigo-600 dark:text-indigo-400">${totalUsers}</div>
+                <div class="card-s1n p-3 text-center">
+                    <div class="text-[10px] uppercase font-bold text-muted">Users</div>
+                    <div class="text-xl font-bold font-mono text-main">${totalUsers}</div>
                 </div>
-                <div class="bg-emerald-50 dark:bg-emerald-900/20 p-3 rounded-xl border border-emerald-100 dark:border-emerald-500/20 text-center">
-                    <div class="text-[10px] uppercase font-bold text-slate-400">Active</div>
-                    <div class="text-xl font-bold text-emerald-600 dark:text-emerald-400">${activeUsers}</div>
+                <div class="card-s1n p-3 text-center">
+                    <div class="text-[10px] uppercase font-bold text-muted">Active</div>
+                    <div class="text-xl font-bold font-mono text-main">${activeUsers}</div>
                 </div>
-                <div class="bg-amber-50 dark:bg-amber-900/20 p-3 rounded-xl border border-amber-100 dark:border-amber-500/20 text-center">
-                    <div class="text-[10px] uppercase font-bold text-slate-400">Points</div>
-                    <div class="text-xl font-bold text-amber-600 dark:text-amber-400">${totalPoints >= 1000 ? (totalPoints/1000).toFixed(1)+'k' : totalPoints}</div>
+                <div class="card-s1n p-3 text-center">
+                    <div class="text-[10px] uppercase font-bold text-muted">Credits</div>
+                    <div class="text-xl font-bold font-mono text-main">${totalPoints >= 1000 ? (totalPoints/1000).toFixed(1)+'k' : totalPoints}</div>
                 </div>
             </div>
 
             <div class="mb-6 flex gap-2 animate-fade-in">
-                <input type="text" id="admin-broadcast-input" placeholder="Send global alert..." class="flex-1 px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm outline-none focus:border-indigo-500">
-                <button onclick="adminSendBroadcast()" class="px-4 py-2 bg-slate-800 dark:bg-slate-700 text-white rounded-xl hover:bg-indigo-600 transition-colors">
+                <input type="text" id="admin-broadcast-input" placeholder="System Alert..." class="input-s1n py-2 text-xs">
+                <button onclick="adminSendBroadcast()" class="btn-s1n px-4 py-2">
                     <i data-lucide="send" class="w-4 h-4"></i>
                 </button>
             </div>
@@ -132,7 +132,7 @@ window.loadAdminPanel = function(filter = '') {
         list.insertAdjacentHTML('beforeend', dashboardHTML);
 
         if (users.length === 0) {
-            list.insertAdjacentHTML('beforeend', `<div class="text-center py-10"><p class="text-slate-400 text-sm">No users found.</p></div>`);
+            list.insertAdjacentHTML('beforeend', `<div class="text-center py-10 border border-dashed border-border rounded-xl"><p class="text-muted text-xs font-bold uppercase">No records found.</p></div>`);
             return;
         }
 
@@ -144,44 +144,47 @@ window.loadAdminPanel = function(filter = '') {
             const isBanned = user.isBanned === true; 
             const safeName = user.name.replace(/'/g, "\\'"); 
             
+            // S1N Row Style: Clean border, no background colors
             const rowClass = isBanned 
-                ? "bg-rose-50 dark:bg-rose-900/10 border-rose-200 dark:border-rose-900/30 opacity-75" 
-                : "bg-white dark:bg-slate-800 border-slate-100 dark:border-slate-700";
+                ? "border-border opacity-60" // Banned: Faded
+                : "border-border hover:border-main";
 
             const div = document.createElement('div');
-            div.className = `flex items-center justify-between p-4 rounded-2xl border shadow-sm animate-fade-in ${rowClass}`;
+            div.className = `flex items-center justify-between p-4 rounded-xl border mb-2 transition-all animate-fade-in bg-card ${rowClass}`;
             
             div.innerHTML = `
-                <div class="flex items-center gap-4">
-                    <div class="p-2 ${isAdmin ? 'bg-indigo-100 text-indigo-600' : (isBanned ? 'bg-rose-100 text-rose-500' : 'bg-slate-100 dark:bg-slate-700 text-slate-500')} rounded-full">
-                        <i data-lucide="${isAdmin ? 'shield' : (isBanned ? 'ban' : 'user')}" class="w-5 h-5"></i>
+                <div class="flex items-center gap-3">
+                    <div class="text-main">
+                        <i data-lucide="${isAdmin ? 'shield' : (isBanned ? 'ban' : 'user')}" class="w-4 h-4"></i>
                     </div>
                     <div>
-                        <p class="text-sm font-bold ${isBanned ? 'text-rose-600 dark:text-rose-400 line-through' : 'text-slate-700 dark:text-slate-200'}">${user.name} ${isBanned ? '<span class="text-[10px] no-line-through bg-rose-500 text-white px-1 rounded ml-1">BANNED</span>' : ''}</p>
-                        <p class="text-[10px] text-slate-400">Points: ${user.points || 0}</p>
+                        <p class="text-sm font-bold text-main ${isBanned ? 'line-through decoration-rose-500' : ''}">
+                            ${user.name} 
+                        </p>
+                        <p class="text-[10px] text-muted font-mono">PTS: ${user.points || 0}</p>
                         
                         <div class="flex items-center gap-2 mt-0.5">
-                            <p id="pass-${safeName}" class="text-[10px] text-slate-400 font-mono">••••••</p>
-                            <button onclick="togglePassVisibility('${safeName}', '${user.password}')" class="text-slate-300 hover:text-indigo-500"><i data-lucide="eye" class="w-3 h-3"></i></button>
+                            <p id="pass-${safeName}" class="text-[10px] text-muted font-mono tracking-widest">••••••</p>
+                            <button onclick="togglePassVisibility('${safeName}', '${user.password}')" class="text-muted hover:text-main"><i data-lucide="eye" class="w-3 h-3"></i></button>
                         </div>
                     </div>
                 </div>
                 ${!isAdmin ? `
                 <div class="flex gap-1">
-                    <button onclick="adminResetPass('${safeName}')" class="p-2 text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors" title="Reset Password">
+                    <button onclick="adminResetPass('${safeName}')" class="p-2 text-muted hover:text-main hover:bg-input rounded-md transition-colors" title="Reset Key">
                         <i data-lucide="key" class="w-4 h-4"></i>
                     </button>
-                    <button onclick="adminEditPoints('${safeName}', ${user.points || 0})" class="p-2 text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-lg transition-colors" title="Edit Points">
+                    <button onclick="adminEditPoints('${safeName}', ${user.points || 0})" class="p-2 text-muted hover:text-main hover:bg-input rounded-md transition-colors" title="Edit Stats">
                         <i data-lucide="pencil" class="w-4 h-4"></i>
                     </button>
-                    <button onclick="adminToggleBan('${safeName}', ${isBanned})" class="p-2 ${isBanned ? 'text-emerald-500 bg-emerald-50' : 'text-orange-400 hover:bg-orange-50'} rounded-lg transition-colors" title="${isBanned ? 'Unban' : 'Ban'} User">
+                    <button onclick="adminToggleBan('${safeName}', ${isBanned})" class="p-2 ${isBanned ? 'text-emerald-500' : 'text-muted hover:text-rose-500'} hover:bg-input rounded-md transition-colors" title="${isBanned ? 'Restore' : 'Suspend'}">
                         <i data-lucide="${isBanned ? 'check-circle' : 'ban'}" class="w-4 h-4"></i>
                     </button>
-                    <button onclick="adminDeleteUser('${safeName}')" class="p-2 text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-900/20 rounded-lg transition-colors" title="Delete User">
+                    <button onclick="adminDeleteUser('${safeName}')" class="p-2 text-muted hover:text-rose-500 hover:bg-input rounded-md transition-colors" title="Purge">
                         <i data-lucide="trash-2" class="w-4 h-4"></i>
                     </button>
                 </div>
-                ` : '<span class="text-[10px] font-bold text-indigo-500 uppercase tracking-wider">Owner</span>'}
+                ` : '<span class="text-[10px] font-bold text-main uppercase tracking-wider border border-main px-2 py-0.5 rounded">Admin</span>'}
             `;
             list.appendChild(div);
         });
@@ -195,12 +198,12 @@ window.adminSendBroadcast = function() {
     if (!input || !input.value.trim()) return;
     
     const msg = input.value.trim();
-    if (confirm(`Send global alert to all users?\n\n"${msg}"`)) {
+    if (confirm(`Broadcast global alert?\n\n"${msg}"`)) {
         firebase.database().ref('system/broadcast').set({
             message: msg,
             timestamp: firebase.database.ServerValue.TIMESTAMP
         }).then(() => {
-            alert("Broadcast sent!");
+            if(window.showNotification) window.showNotification("SENT", "Broadcast dispatched.", "success");
             input.value = '';
         });
     }
@@ -211,29 +214,29 @@ window.togglePassVisibility = function(elementId, password) {
     if (el) {
         if (el.textContent === '••••••') {
             el.textContent = password;
-            el.classList.add('text-indigo-500');
+            el.classList.add('text-main');
         } else {
             el.textContent = '••••••';
-            el.classList.remove('text-indigo-500');
+            el.classList.remove('text-main');
         }
     }
 };
 
 window.adminResetPass = function(targetName) {
-    const newPass = prompt(`Enter NEW password for ${targetName}:`);
+    const newPass = prompt(`Reset Key for ${targetName}:`);
     if (newPass && newPass.trim() !== "") {
         firebase.database().ref('users/' + targetName).update({
             password: newPass.trim()
         }).then(() => {
-            alert("Password updated successfully.");
+            alert("Key Updated.");
             loadAdminPanel();
         });
     }
 };
 
 window.adminToggleBan = function(targetName, currentStatus) {
-    const action = currentStatus ? "UNBAN" : "BAN";
-    if (confirm(`Are you sure you want to ${action} ${targetName}?`)) {
+    const action = currentStatus ? "RESTORE" : "SUSPEND";
+    if (confirm(`${action} access for ${targetName}?`)) {
         firebase.database().ref('users/' + targetName).update({
             isBanned: !currentStatus
         }).then(() => {
@@ -245,11 +248,11 @@ window.adminToggleBan = function(targetName, currentStatus) {
 window.adminEditPoints = async function(targetName, currentDisplayPoints) {
     if (!currentUser || currentUser.name !== 'Owner') return;
 
-    const newPointsStr = prompt(`Update TOTAL points for ${targetName}:`, currentDisplayPoints);
+    const newPointsStr = prompt(`Set TOTAL Credits for ${targetName}:`, currentDisplayPoints);
     if (newPointsStr === null || newPointsStr.trim() === "") return;
 
     const newPoints = parseInt(newPointsStr);
-    if (isNaN(newPoints)) return alert("Invalid number.");
+    if (isNaN(newPoints)) return alert("Invalid Format.");
 
     try {
         const snap = await firebase.database().ref('users/' + targetName).get();
@@ -268,15 +271,15 @@ window.adminEditPoints = async function(targetName, currentDisplayPoints) {
         
         loadAdminPanel();
     } catch (err) {
-        alert("Error: " + err.message);
+        alert("Sync Error: " + err.message);
     }
 };
 
 window.adminDeleteUser = function(targetName) {
     if (!currentUser || currentUser.name !== 'Owner') return;
-    if (targetName === 'Owner') return alert("Cannot delete Owner.");
+    if (targetName === 'Owner') return alert("Protected User.");
     
-    if (confirm(`⚠️ PERMANENTLY DELETE "${targetName}"?`)) {
+    if (confirm(`⚠️ PERMANENTLY PURGE "${targetName}"?`)) {
         firebase.database().ref('users/' + targetName).remove()
         .then(() => loadAdminPanel());
     }
@@ -286,14 +289,14 @@ window.adminDeleteUser = function(targetName) {
 window.toggleAuthMode = function() {
     isLoginMode = !isLoginMode;
     if (isLoginMode) {
-        authTitle.textContent = "Welcome to Aura";
-        authSubmitBtn.textContent = "Log In";
-        toggleAuthText.innerHTML = "New here? <span class='text-indigo-600 font-bold cursor-pointer hover:underline' onclick='toggleAuthMode()'>Create Account</span>";
+        authTitle.textContent = "Enter Workspace";
+        authSubmitBtn.textContent = "Initialize Session";
+        toggleAuthText.innerHTML = "New agent? <span class='text-main font-bold cursor-pointer hover:underline' onclick='toggleAuthMode()'>Create ID</span>";
         confirmPassField.classList.add('hidden');
     } else {
-        authTitle.textContent = "Join Contest";
-        authSubmitBtn.textContent = "Sign Up";
-        toggleAuthText.innerHTML = "Have an account? <span class='text-indigo-600 font-bold cursor-pointer hover:underline' onclick='toggleAuthMode()'>Log In</span>";
+        authTitle.textContent = "New Registration";
+        authSubmitBtn.textContent = "Create Identity";
+        toggleAuthText.innerHTML = "Have ID? <span class='text-main font-bold cursor-pointer hover:underline' onclick='toggleAuthMode()'>Log In</span>";
         confirmPassField.classList.remove('hidden');
     }
 };
@@ -306,13 +309,12 @@ window.handleAuth = async function(e) {
     const password = passInput.value;
     const confirmPass = confirmPassInput.value;
 
-    if (!name || !password) return alert("Please fill in all fields");
-    if (name.toLowerCase() === 'undefined' || name.toLowerCase() === 'null') return alert("Invalid username.");
+    if (!name || !password) return alert("Credentials missing.");
+    if (name.toLowerCase() === 'undefined' || name.toLowerCase() === 'null') return alert("Invalid ID.");
 
     authSubmitBtn.disabled = true;
-    authSubmitBtn.innerHTML = '<i data-lucide="loader-2" class="w-5 h-5 animate-spin mx-auto"></i>';
-    if(window.lucide) lucide.createIcons();
-
+    authSubmitBtn.textContent = "Processing...";
+    
     const userRef = firebase.database().ref('users/' + name);
 
     try {
@@ -322,19 +324,19 @@ window.handleAuth = async function(e) {
         if (isLoginMode) {
             if (userData) {
                 if (userData.isBanned) {
-                    throw new Error("⛔ Account Suspended. Contact Admin.");
+                    throw new Error("ACCESS DENIED. ID SUSPENDED.");
                 }
                 if (userData.password === password) {
                     loginUser(userData);
                 } else {
-                    throw new Error("Invalid Username or Password");
+                    throw new Error("Authentication Failed.");
                 }
             } else {
-                throw new Error("User not found");
+                throw new Error("ID not found.");
             }
         } else {
-            if (password !== confirmPass) throw new Error("Passwords do not match");
-            if (userData) throw new Error("Username already taken");
+            if (password !== confirmPass) throw new Error("Key Mismatch.");
+            if (userData) throw new Error("ID Taken.");
 
             const newUser = {
                 name: name,
@@ -343,7 +345,7 @@ window.handleAuth = async function(e) {
                 monthlyPoints: 0,
                 streak: 0,
                 friends: [], 
-                inventory: [], // ADDED: Init Inventory
+                inventory: [],
                 isBanned: false,
                 joinDate: new Date().toLocaleDateString(),
                 lastActiveMonth: new Date().toISOString().slice(0, 7)
@@ -355,7 +357,7 @@ window.handleAuth = async function(e) {
     } catch (error) {
         alert(error.message);
         authSubmitBtn.disabled = false;
-        authSubmitBtn.textContent = isLoginMode ? "Log In" : "Sign Up";
+        authSubmitBtn.textContent = isLoginMode ? "Initialize Session" : "Create Identity";
     }
 };
 
@@ -424,7 +426,7 @@ window.syncUserToDB = function(newPoints, newStreak, monthlyPoints, lastActiveMo
         streak: newStreak,
         monthlyPoints: monthlyPoints,
         lastActiveMonth: lastActiveMonth,
-        inventory: inventory, // ADDED: Sync Inventory
+        inventory: inventory, 
         totalMinutes: stats.minutes,
         totalSessions: stats.sessions || 0,
         totalTasks: completedTasks,
@@ -438,18 +440,18 @@ function listenToStats() {
         const data = snapshot.val();
         if(data) {
              if (data.isBanned) {
-                 alert("Your account has been suspended.");
+                 alert("ID SUSPENDED.");
                  localStorage.removeItem('auraUser');
                  window.location.reload();
              }
 
-             // Handle Background Sync of Friends/Inventory
+             // Handle Background Sync
              let needsSave = false;
              if(data.friends) {
                  currentUser.friends = data.friends;
                  needsSave = true;
              }
-             if(data.inventory) { // ADDED: Listen for inventory changes (multi-device)
+             if(data.inventory) { 
                  currentUser.inventory = data.inventory;
                  needsSave = true;
              }
@@ -469,7 +471,7 @@ function listenToStats() {
 }
 
 window.logout = function() {
-    if(confirm("Log out?")) {
+    if(confirm("Terminating Session. Confirm?")) {
         localStorage.removeItem('auraUser');
         window.location.reload();
     }
@@ -477,7 +479,7 @@ window.logout = function() {
 
 window.deleteAccount = function() {
     if(!currentUser) return;
-    if(confirm("Delete account permanently?")) {
+    if(confirm("⚠️ WARNING: This will permanently purge your Identity.")) {
         firebase.database().ref('users/' + currentUser.name).remove()
         .then(() => {
             localStorage.clear();
