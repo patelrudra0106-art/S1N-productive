@@ -1,27 +1,27 @@
-/* profile.js - Samsung White Mode */
+/* profile.js - Updated with Badge Display */
 
 // --- STATE ---
 let userProfile = JSON.parse(localStorage.getItem('auraProfile')) || {
     name: 'Guest',
-    points: 0,        // "Yearly Points"
-    monthlyPoints: 0, // "Monthly Points"
+    points: 0,        
+    monthlyPoints: 0, 
     streak: 0,
     lastTaskDate: null,
-    lastActiveMonth: new Date().toISOString().slice(0, 7) // "YYYY-MM"
+    lastActiveMonth: new Date().toISOString().slice(0, 7) 
 };
 
 // --- CHECK RESET LOGIC (MONTHLY & YEARLY) ---
 (function checkTimeResets() {
     const now = new Date();
-    const currentMonth = now.toISOString().slice(0, 7); // "2026-01"
-    const currentYear = now.getFullYear().toString();   // "2026"
+    const currentMonth = now.toISOString().slice(0, 7); 
+    const currentYear = now.getFullYear().toString();   
 
     const savedMonth = userProfile.lastActiveMonth || "";
     const savedYear = savedMonth.split('-')[0]; 
 
     let hasChanged = false;
 
-    // 1. YEARLY RESET
+    // 1. YEARLY RESET 
     if (savedYear && savedYear !== currentYear) {
         userProfile.points = 0;
         hasChanged = true;
@@ -61,7 +61,6 @@ window.addPoints = function(amount, reason) {
     
     if(window.syncUserToDB) window.syncUserToDB(userProfile.points, userProfile.streak, userProfile.monthlyPoints, userProfile.lastActiveMonth);
     
-    // Trigger White Mode Notification
     if(amount > 0 && window.showNotification) window.showNotification(`+${amount} Points!`, reason, 'success');
 };
 
@@ -91,14 +90,69 @@ function saveProfile() {
 }
 
 function updateProfileUI() {
-    // These elements have been updated in index.html to be Slate-900 (Black)
     if(navStreak) navStreak.textContent = userProfile.streak;
     if(pointsDisplay) pointsDisplay.textContent = userProfile.points.toLocaleString();
     if(streakDisplay) streakDisplay.textContent = userProfile.streak;
     if(profileNameDisplay) profileNameDisplay.textContent = userProfile.name || 'User';
+
+    // RENDER BADGES
+    renderProfileBadges();
 }
 
-// --- MODAL CONTROLS (GLOBAL) ---
+// --- BADGE RENDERING (NEW) ---
+function renderProfileBadges() {
+    const user = JSON.parse(localStorage.getItem('auraUser'));
+    const inventory = (user && user.inventory) ? user.inventory : [];
+    
+    // Find or create badge container in modal
+    const modalContent = document.querySelector('#account-modal > div');
+    if (!modalContent) return;
+
+    let badgeContainer = document.getElementById('profile-badges');
+    
+    // If user has no badges, hide container if it exists
+    if (inventory.length === 0) {
+        if(badgeContainer) badgeContainer.innerHTML = '';
+        return;
+    }
+
+    // Create container if it doesn't exist
+    if (!badgeContainer) {
+        badgeContainer = document.createElement('div');
+        badgeContainer.id = 'profile-badges';
+        badgeContainer.className = "flex flex-wrap gap-2 justify-center mb-6 animate-fade-in";
+        // Insert after the stats row (points/streak) which is the 2nd child usually
+        // We insert it before the "Current User" name box
+        const nameBox = document.querySelector('#account-modal .bg-slate-50.rounded-2xl.mb-4');
+        if (nameBox) {
+            nameBox.parentNode.insertBefore(badgeContainer, nameBox);
+        }
+    }
+
+    // Map IDs to Visuals (Simple Lookup to avoid dependency issues)
+    const badgeLookups = {
+        'badge_crown': { icon: 'crown', color: 'bg-amber-100 text-amber-600' },
+        'badge_star': { icon: 'star', color: 'bg-purple-100 text-purple-600' },
+        'badge_fire': { icon: 'flame', color: 'bg-orange-100 text-orange-600' },
+        'badge_zap': { icon: 'zap', color: 'bg-indigo-100 text-indigo-600' },
+        'theme_emerald': { icon: 'leaf', color: 'bg-emerald-100 text-emerald-600' }
+    };
+
+    badgeContainer.innerHTML = '';
+    inventory.forEach(itemId => {
+        const visual = badgeLookups[itemId] || { icon: 'award', color: 'bg-slate-100 text-slate-500' };
+        
+        const badge = document.createElement('div');
+        badge.className = `p-2 rounded-lg ${visual.color} shadow-sm`;
+        badge.title = itemId;
+        badge.innerHTML = `<i data-lucide="${visual.icon}" class="w-5 h-5"></i>`;
+        badgeContainer.appendChild(badge);
+    });
+
+    if(window.lucide) lucide.createIcons();
+}
+
+// --- MODAL CONTROLS ---
 window.openAccount = function() {
     const modal = document.getElementById('account-modal');
     if(modal) {
@@ -168,19 +222,6 @@ window.submitChangePass = async function() {
         btn.textContent = originalText;
         btn.disabled = false;
     }
-};
-
-// --- SHOP LOGIC ---
-window.spendPoints = function(amount) {
-    if (userProfile.points < amount) return false;
-    
-    userProfile.points -= amount;
-    saveProfile();
-    updateProfileUI();
-    
-    if(window.syncUserToDB) window.syncUserToDB(userProfile.points, userProfile.streak, userProfile.monthlyPoints, userProfile.lastActiveMonth);
-    
-    return true;
 };
 
 // Init

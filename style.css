@@ -10,7 +10,6 @@ body, div, input, button, span, svg, circle, section, p, h1, h2, h3, select {
 /* Utilities */
 .scrollbar-hide::-webkit-scrollbar { display: none; }
 .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
-:focus-visible { outline: none; }
 
 .glass {
     background: rgba(255, 255, 255, 0.7);
@@ -25,83 +24,48 @@ body, div, input, button, span, svg, circle, section, p, h1, h2, h3, select {
 }
 .animate-fade-in { animation: fadeIn 0.4s ease-out forwards; }
 
-/* --- SAMSUNG B&W THEME OVERRIDES --- */
-/* These styles only apply when <html class="theme-samsung"> is active */
+/* Browser Fixes */
+.dark ::-webkit-calendar-picker-indicator { filter: invert(1); opacity: 0.6; cursor: pointer; }
+:focus-visible { outline: none; }
 
-/* 1. Remove Colored Gradients -> Solid Black/Dark Gray */
-.theme-samsung .bg-gradient-to-br, 
-.theme-samsung .bg-gradient-to-r {
-    background: #171717 !important; 
-    border: 1px solid #E5E5E5;
+/* --- AUTH & SOCIAL STYLES --- */
+#auth-overlay {
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
 }
 
-/* 2. Primary Buttons (Black Background, White Text) */
-.theme-samsung .bg-indigo-600 {
-    background-color: #000000 !important;
-    color: #FFFFFF !important;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+.auth-card {
+    background: rgba(255, 255, 255, 0.9);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
 }
-.theme-samsung .bg-indigo-600:hover {
-    background-color: #333333 !important;
-    transform: scale(1.02);
-}
-
-/* 3. Status Badges/Icons (High Contrast) */
-/* Success (Emerald) -> Black Icon on Light Gray */
-.theme-samsung .text-emerald-500 { color: #000000 !important; }
-.theme-samsung .bg-emerald-50 { background-color: #F2F2F2 !important; }
-.theme-samsung .bg-emerald-100 { background-color: #E5E5E5 !important; }
-
-/* Warning (Amber) -> Dark Gray Icon on Light Gray */
-.theme-samsung .text-amber-500 { color: #333333 !important; }
-.theme-samsung .bg-amber-50 { background-color: #F2F2F2 !important; }
-.theme-samsung .bg-amber-100 { background-color: #E5E5E5 !important; }
-
-/* Danger (Rose) -> Black Icon on Light Gray */
-.theme-samsung .text-rose-500 { color: #000000 !important; }
-.theme-samsung .bg-rose-50 { background-color: #F2F2F2 !important; }
-
-/* 4. Auth Overlay */
-.theme-samsung #auth-overlay {
-    background-color: #FFFFFF;
-}
-.theme-samsung .auth-card {
-    background: #FFFFFF;
-    border: 1px solid #E5E5E5;
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.05);
+.dark .auth-card {
+    background: rgba(15, 23, 42, 0.9);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
 }
 
-/* 5. User List Rows */
-.theme-samsung .user-row {
-    background: #FFFFFF;
-    border: 1px solid #F0F0F0;
+.user-row {
+    transition: transform 0.2s, background-color 0.2s;
 }
-.theme-samsung .user-row:hover {
+.user-row:hover {
     transform: translateX(4px);
-    background-color: #FAFAFA;
-    border-color: #E0E0E0;
+    background-color: rgba(99, 102, 241, 0.05);
+}
+.dark .user-row:hover {
+    background-color: rgba(99, 102, 241, 0.1);
 }
 
-/* 6. Rank Badges (Monochrome) */
-.theme-samsung .rank-badge.rank-1 { background: #000000; color: white; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
-.theme-samsung .rank-badge.rank-2 { background: #9CA3AF; color: white; }
-.theme-samsung .rank-badge.rank-3 { background: #D1D5DB; color: black; }
-
-/* 7. Input Fields */
-.theme-samsung input[type="text"], 
-.theme-samsung input[type="password"], 
-.theme-samsung input[type="number"], 
-.theme-samsung input[type="date"], 
-.theme-samsung input[type="time"] {
-    background-color: #FFFFFF !important;
-    border-color: #E5E5E5 !important;
-    color: #000000 !important;
+.rank-badge {
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    font-size: 10px;
+    font-weight: bold;
 }
-.theme-samsung input:focus {
-    border-color: #000000 !important;
-}
-
-/* 8. Text Colors & Dark Mode Adaptations */
-.theme-samsung .text-indigo-600 { color: #000000 !important; }
-.theme-samsung .text-slate-900 { color: #000000 !important; }
-.theme-samsung .text-slate-500 { color: #666666 !important; }
+.rank-1 { background: #EAB308; color: white; box-shadow: 0 2px 10px rgba(234, 179, 8, 0.3); }
+.rank-2 { background: #94A3B8; color: white; }
+.rank-3 { background: #B45309; color: white; }

@@ -1,4 +1,4 @@
-/* pomodoro.js - Noir Theme */
+/* pomodoro.js */
 
 // --- POMODORO CONFIG ---
 let settings = JSON.parse(localStorage.getItem('auraTimerSettings')) || {
@@ -7,11 +7,10 @@ let settings = JSON.parse(localStorage.getItem('auraTimerSettings')) || {
     long: 15
 };
 
-// NOIR MODE: White for Work, Grays for Breaks
 let MODES = {
-    work: { time: settings.work * 60, label: 'Focus Time', color: 'text-white stroke-white' },
-    short: { time: settings.short * 60, label: 'Short Break', color: 'text-gray-400 stroke-gray-400' },
-    long: { time: settings.long * 60, label: 'Long Break', color: 'text-gray-600 stroke-gray-600' }
+    work: { time: settings.work * 60, label: 'Focus Time', color: 'text-indigo-500' },
+    short: { time: settings.short * 60, label: 'Short Break', color: 'text-emerald-500' },
+    long: { time: settings.long * 60, label: 'Long Break', color: 'text-blue-500' }
 };
 
 // --- STATE ---
@@ -46,8 +45,10 @@ const CIRCLE_CIRCUMFERENCE = 2 * Math.PI * CIRCLE_RADIUS;
 
 // --- INIT ---
 function initPomodoro() {
-    progressRing.style.strokeDasharray = `${CIRCLE_CIRCUMFERENCE} ${CIRCLE_CIRCUMFERENCE}`;
-    progressRing.style.strokeDashoffset = 0;
+    if(progressRing) {
+        progressRing.style.strokeDasharray = `${CIRCLE_CIRCUMFERENCE} ${CIRCLE_CIRCUMFERENCE}`;
+        progressRing.style.strokeDashoffset = 0;
+    }
     updateDisplay();
     updateStatsDisplay();
     renderHistory();
@@ -56,25 +57,28 @@ function initPomodoro() {
 
 // --- CORE FUNCTIONS ---
 function updateDisplay() {
+    if(!timerDisplay) return;
     const m = Math.floor(timeLeft / 60).toString().padStart(2, '0');
     const s = (timeLeft % 60).toString().padStart(2, '0');
     timerDisplay.textContent = `${m}:${s}`;
-    const totalTime = MODES[currentMode].time;
-    const offset = CIRCLE_CIRCUMFERENCE - (timeLeft / totalTime) * CIRCLE_CIRCUMFERENCE;
-    progressRing.style.strokeDashoffset = offset;
+    
+    if(progressRing) {
+        const totalTime = MODES[currentMode].time;
+        const offset = CIRCLE_CIRCUMFERENCE - (timeLeft / totalTime) * CIRCLE_CIRCUMFERENCE;
+        progressRing.style.strokeDashoffset = offset;
+    }
     document.title = isRunning ? `(${m}:${s}) Aura Focus` : 'Aura Tasks';
 }
 
 function startTimer() {
     if (isRunning) return;
     isRunning = true;
-    
-    // NOIR: Active = White BG, Black Icon
-    toggleBtn.innerHTML = '<i data-lucide="pause" class="w-6 h-6 fill-current text-black"></i>';
-    toggleBtn.className = "w-16 h-16 flex items-center justify-center rounded-full bg-white text-black shadow-lg hover:bg-gray-200 transition-all active:scale-95";
-    
-    lucide.createIcons();
+    toggleBtn.innerHTML = '<i data-lucide="pause" class="w-6 h-6 fill-current"></i>';
+    toggleBtn.classList.add('bg-rose-500', 'hover:bg-rose-600');
+    toggleBtn.classList.remove('bg-indigo-600', 'hover:bg-indigo-700');
+    if(window.lucide) lucide.createIcons();
     timerStatus.textContent = currentMode === 'work' ? 'Stay Focused' : 'Relax & Recharge';
+    
     timerInterval = setInterval(() => {
         if (timeLeft > 0) {
             timeLeft--;
@@ -88,13 +92,11 @@ function startTimer() {
 function pauseTimer() {
     isRunning = false;
     clearInterval(timerInterval);
-    
-    // NOIR: Paused = Black BG, White Icon, Grey Border
-    toggleBtn.innerHTML = '<i data-lucide="play" class="w-6 h-6 ml-1 fill-current text-white"></i>';
-    toggleBtn.className = "w-16 h-16 flex items-center justify-center rounded-full bg-[#121212] text-white border border-[#333] hover:bg-[#222] transition-all active:scale-95";
-    
+    toggleBtn.innerHTML = '<i data-lucide="play" class="w-6 h-6 ml-1 fill-current"></i>';
+    toggleBtn.classList.remove('bg-rose-500', 'hover:bg-rose-600');
+    toggleBtn.classList.add('bg-indigo-600', 'hover:bg-indigo-700');
     timerStatus.textContent = 'Paused';
-    lucide.createIcons();
+    if(window.lucide) lucide.createIcons();
 }
 
 function resetTimer() {
@@ -106,22 +108,22 @@ function resetTimer() {
 
 function completeTimer() {
     pauseTimer();
-    // NOIR: White & Silver Confetti
-    if(window.confetti) confetti({ 
-        particleCount: 150, 
-        spread: 70, 
-        origin: { y: 0.6 }, 
-        colors: ['#ffffff', '#cccccc', '#888888'] 
-    });
+    if(window.confetti) confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
     
+    // Play sound
+    const alarm = document.getElementById('alarm-sound');
+    if(alarm) alarm.play().catch(()=>{});
+
+    // NOTIFICATION UI
     if (window.showNotification) {
-        const title = currentMode === 'work' ? "Focus Complete!" : "Break Over!";
+        const title = currentMode === 'work' ? "Focus Complete! 🎉" : "Break Over! ⏳";
         const body = currentMode === 'work' ? "Great job! +50 Points" : "Time to focus again.";
         const type = currentMode === 'work' ? "success" : "info";
         window.showNotification(title, body, type);
     }
 
     if(currentMode === 'work') {
+        // 4. Complete a focus time then 50 point (No point for break)
         if(window.addPoints) window.addPoints(50, "Focus Session Complete");
 
         const minutes = MODES.work.time / 60;
@@ -131,44 +133,27 @@ function completeTimer() {
     timerStatus.textContent = 'Session Complete!';
 }
 
-// --- SETTINGS MODAL LOGIC (Inputs must be in HTML) ---
+// --- SETTINGS MODAL ---
 window.openSettings = function() {
-    const modal = document.getElementById('settings-modal');
-    if(modal) {
-        modal.classList.remove('hidden');
-        // Populate inputs with current settings
-        const fInput = document.getElementById('setting-focus');
-        const sInput = document.getElementById('setting-short');
-        const lInput = document.getElementById('setting-long');
-        
-        if(fInput) fInput.value = settings.work;
-        if(sInput) sInput.value = settings.short;
-        if(lInput) lInput.value = settings.long;
-    }
+    document.getElementById('settings-modal').classList.remove('hidden');
+    document.getElementById('setting-focus').value = settings.work;
+    document.getElementById('setting-short').value = settings.short;
+    document.getElementById('setting-long').value = settings.long;
 };
 
 window.closeSettings = function() {
-    const modal = document.getElementById('settings-modal');
-    if(modal) modal.classList.add('hidden');
+    document.getElementById('settings-modal').classList.add('hidden');
 };
 
 window.saveSettings = function() {
-    const fInput = document.getElementById('setting-focus');
-    const sInput = document.getElementById('setting-short');
-    const lInput = document.getElementById('setting-long');
-
-    const newWork = parseInt(fInput ? fInput.value : 25) || 25;
-    const newShort = parseInt(sInput ? sInput.value : 5) || 5;
-    const newLong = parseInt(lInput ? lInput.value : 15) || 15;
-
+    const newWork = parseInt(document.getElementById('setting-focus').value) || 25;
+    const newShort = parseInt(document.getElementById('setting-short').value) || 5;
+    const newLong = parseInt(document.getElementById('setting-long').value) || 15;
     settings = { work: newWork, short: newShort, long: newLong };
     localStorage.setItem('auraTimerSettings', JSON.stringify(settings));
-    
-    // Update Modes
     MODES.work.time = newWork * 60;
     MODES.short.time = newShort * 60;
     MODES.long.time = newLong * 60;
-    
     resetTimer();
     closeSettings();
 };
@@ -176,14 +161,14 @@ window.saveSettings = function() {
 // --- LINKED TASKS ---
 window.setFocusTask = function(taskText) {
     currentFocusTask = taskText;
-    focusTaskText.textContent = taskText;
-    activeTaskDisplay.classList.remove('hidden');
+    if(focusTaskText) focusTaskText.textContent = taskText;
+    if(activeTaskDisplay) activeTaskDisplay.classList.remove('hidden');
     setMode('work');
 };
 
 window.clearFocusTask = function() {
     currentFocusTask = null;
-    activeTaskDisplay.classList.add('hidden');
+    if(activeTaskDisplay) activeTaskDisplay.classList.add('hidden');
 };
 
 // --- HISTORY & STATS ---
@@ -192,6 +177,10 @@ function saveStats(minutesToAdd) {
     stats.minutes += minutesToAdd;
     localStorage.setItem('auraStats', JSON.stringify(stats));
     updateStatsDisplay();
+    
+    // Sync to Cloud if logged in (Handled by profile.js/auth.js logic usually, but we can trigger it)
+    // Here we rely on the points update to trigger sync, or we can add a specific sync call if needed.
+    // For now, points update handles the "active" check.
 }
 
 function updateStatsDisplay() {
@@ -219,19 +208,18 @@ function renderHistory() {
     if(!historyList) return;
     historyList.innerHTML = '';
     if(history.length === 0) {
-        historyList.innerHTML = '<li class="text-center text-gray-500 italic py-4 text-sm">No history yet. Start focusing!</li>';
+        historyList.innerHTML = '<li class="text-center text-slate-400 italic py-4 text-sm">No history yet. Start focusing!</li>';
         return;
     }
     history.forEach(item => {
         const li = document.createElement('li');
-        // NOIR: Card BG #121212, Border #333
-        li.className = "flex justify-between items-center bg-[#121212] p-3 rounded-xl border border-[#333] animate-fade-in";
+        li.className = "flex justify-between items-center bg-white dark:bg-slate-800 p-3 rounded-xl border border-slate-100 dark:border-slate-700/50 animate-fade-in";
         li.innerHTML = `
             <div class="flex flex-col min-w-0 pr-4">
-                <span class="font-medium text-gray-200 truncate text-sm">${item.label}</span>
-                <span class="text-[10px] text-gray-500 uppercase tracking-wide mt-0.5">${item.date} • ${item.time}</span>
+                <span class="font-medium text-slate-700 dark:text-slate-200 truncate text-sm">${item.label}</span>
+                <span class="text-[10px] text-slate-400 uppercase tracking-wide mt-0.5">${item.date} • ${item.time}</span>
             </div>
-            <span class="text-xs font-bold text-black bg-white px-2 py-1 rounded-lg shrink-0">
+            <span class="text-xs font-bold text-indigo-500 bg-indigo-50 dark:bg-indigo-500/10 px-2 py-1 rounded-lg shrink-0">
                 ${item.duration}m
             </span>
         `;
@@ -252,29 +240,27 @@ function setMode(mode) {
     resetTimer();
     currentMode = mode;
     timeLeft = MODES[mode].time;
-    
     Object.keys(modeBtns).forEach(k => {
         const btn = modeBtns[k];
+        if(!btn) return;
         if(k === mode) {
-            // Active: White BG, Black Text
-            btn.className = "px-4 py-2 rounded-lg text-sm font-medium transition-all bg-white text-black shadow-sm ring-1 ring-black/5";
+            btn.className = "px-4 py-2 rounded-lg text-sm font-medium transition-all bg-white dark:bg-slate-700 shadow-sm text-indigo-600 dark:text-indigo-300 ring-1 ring-black/5";
         } else {
-            // Inactive: Gray Text
-            btn.className = "px-4 py-2 rounded-lg text-sm font-medium transition-all text-gray-500 hover:text-white";
+            btn.className = "px-4 py-2 rounded-lg text-sm font-medium transition-all text-slate-500 hover:text-slate-700 dark:text-slate-400";
         }
     });
-    
-    progressRing.setAttribute('class', `transition-all duration-1000 ease-linear ${MODES[mode].color}`);
+    if(progressRing) progressRing.setAttribute('class', `transition-all duration-1000 ease-linear ${MODES[mode].color}`);
     updateDisplay();
 }
 
 function setupModeListeners() {
-    modeBtns.work.addEventListener('click', () => setMode('work'));
-    modeBtns.short.addEventListener('click', () => setMode('short'));
-    modeBtns.long.addEventListener('click', () => setMode('long'));
+    if(modeBtns.work) modeBtns.work.addEventListener('click', () => setMode('work'));
+    if(modeBtns.short) modeBtns.short.addEventListener('click', () => setMode('short'));
+    if(modeBtns.long) modeBtns.long.addEventListener('click', () => setMode('long'));
 }
 
-toggleBtn.addEventListener('click', () => isRunning ? pauseTimer() : startTimer());
-resetBtn.addEventListener('click', resetTimer);
+if(toggleBtn) toggleBtn.addEventListener('click', () => isRunning ? pauseTimer() : startTimer());
+if(resetBtn) resetBtn.addEventListener('click', resetTimer);
 
+// Run init
 initPomodoro();
