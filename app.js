@@ -121,9 +121,28 @@ function toggleTask(id) {
                 confetti({ particleCount: 40, spread: 40, origin: { x, y }, colors: ['#000000', '#FFFFFF', '#9CA3AF'] });
             }
 
-            // Award Points (Linked to Profile.js)
-            if(window.addPoints) window.addPoints(10, "Task Complete");
-            if(window.updateStreak) window.updateStreak();
+            // --- CHANGED POINT LOGIC ---
+            let points = 20; // Default: Before deadline or no deadline
+            let reason = "Task Complete";
+
+            if (tasks[taskIndex].date) {
+                // Construct deadline date object
+                const dueString = tasks[taskIndex].date + (tasks[taskIndex].time ? 'T' + tasks[taskIndex].time : 'T23:59:59');
+                const dueDate = new Date(dueString);
+                
+                // Compare current time with deadline
+                if (new Date() > dueDate) {
+                    points = -50;
+                    reason = "Late Penalty";
+                }
+            }
+
+            // Execute Point Update
+            if(window.addPoints) window.addPoints(points, reason);
+            
+            // Only update streak if points were positive (optional logic, but keeps streak clean)
+            if(window.updateStreak && points > 0) window.updateStreak();
+            // ---------------------------
 
         } else {
             tasks[taskIndex].completedAt = null;

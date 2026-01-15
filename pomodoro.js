@@ -34,8 +34,8 @@ const modeBtns = {
     short: document.getElementById('mode-short'),
     long: document.getElementById('mode-long')
 };
-const statSessions = document.getElementById('sessions-count'); // Might be in reports view now
-const historyList = document.getElementById('history-list'); // In Focus view (if added) or Settings
+const statSessions = document.getElementById('sessions-count'); 
+const historyList = document.getElementById('history-list'); 
 const activeTaskDisplay = document.getElementById('active-task-display');
 const focusTaskText = document.getElementById('focus-task-text');
 
@@ -51,8 +51,8 @@ function initPomodoro() {
         progressRing.style.strokeDashoffset = 0;
     }
     updateDisplay();
-    // updateStatsDisplay(); // Removed if stats are only in Reports view now
-    renderHistory(); // Renders in Notification History or if a list exists in Focus view
+    // updateStatsDisplay(); 
+    renderHistory(); 
     setupModeListeners();
 }
 
@@ -127,11 +127,13 @@ function completeTimer() {
     if (window.showNotification) {
         const title = currentMode === 'work' ? "SESSION COMPLETE" : "BREAK OVER";
         const body = currentMode === 'work' ? "Protocol finished. +50 Credits." : "Return to focus.";
-        window.showNotification(title, body, "success"); // Success type handles checkmark icon
+        window.showNotification(title, body, "success"); 
     }
 
     if(currentMode === 'work') {
+        // --- ENSURING 50 POINTS ---
         if(window.addPoints) window.addPoints(50, "Focus Session");
+        
         const minutes = MODES.work.time / 60;
         saveStats(minutes);
         addToHistory(minutes, currentFocusTask || 'Focus Session');
@@ -212,11 +214,8 @@ function addToHistory(duration, label) {
     renderHistory();
 }
 
-// Render History into the "Notification History" modal for now, or any list container found
 function renderHistory() {
-    // We reuse the notification-history-list for this if needed, 
-    // BUT the new design might not show history on the main focus page.
-    // This function ensures data is ready if we add a history view later.
+    // Placeholder for potential future history UI components
 }
 
 window.clearHistory = function() {
