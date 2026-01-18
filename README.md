@@ -77,4 +77,5 @@ A comprehensive productivity application featuring Task Management, Pomodoro Tim
 
 ---
 
-**Developed by Patel Rudra**
+**Developed by Patel Rudra
+               Pingale kavan**
